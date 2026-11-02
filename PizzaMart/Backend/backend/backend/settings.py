@@ -171,3 +171,25 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+#  /Admin side / 
+
+# from decouple import config
+
+
+# ADMIN_USERNAME = config("ADMIN_USERNAME")
+# ADMIN_EMAIL = config("ADMIN_EMAIL")
+# ADMIN_PASSWORD = config("ADMIN_PASSWORD")
+import os
+from pathlib import Path
+from dotenv import load_dotenv
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+load_dotenv(BASE_DIR / ".env")
+
+PIZZAMART_ADMIN_EMAIL = os.getenv("PIZZAMART_ADMIN_EMAIL")
+PIZZAMART_ADMIN_PASSWORD = os.getenv("PIZZAMART_ADMIN_PASSWORD")
+
+if not PIZZAMART_ADMIN_EMAIL or not PIZZAMART_ADMIN_PASSWORD:
+    raise ValueError("Admin email or password is missing from .env")

@@ -92,6 +92,8 @@ class Cart(models.Model):
     coupon = models.ForeignKey("Coupon" ,on_delete=models.SET_NULL,null=True,blank=True, related_name='carts')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    class Meta:
+        db_table = "user_cart"
 
     def __str__(self):
         return f"Cart - {self.user}"
@@ -99,13 +101,14 @@ class Cart(models.Model):
 # Cart Items 
 
 class CartItems(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     cart = models.ForeignKey(Cart,on_delete=models.CASCADE,related_name='items')
     pizzas = models.ForeignKey(Pizzas,on_delete=models.CASCADE,related_name='cart_items')
     quantity = models.PositiveIntegerField(default=1,validators=[MinValueValidator(1)])
     added_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        db_table = "user_cartitems"
         constraints = [models.UniqueConstraint(fields=["cart", "pizzas"],name="unique_product_per_cart")]
     def __str__(self):
         return f"{self.pizzas.name} x {self.quantity}"

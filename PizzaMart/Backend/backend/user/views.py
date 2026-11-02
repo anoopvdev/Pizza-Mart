@@ -624,7 +624,7 @@ class CartViews(APIView):
                 },status=status.HTTP_400_BAD_REQUEST
             )
         try:
-            pizza = Pizzas.objects.get(id=pizza_id,is_available= True)
+            pizza = Pizzas.objects.get(id=pizza_id,is_avilable= True)
         except Pizzas.DoesNotExist:
             return Response({
                 "error":"Product not found"

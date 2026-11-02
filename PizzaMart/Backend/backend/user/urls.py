@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import *
 from .views import login_user
-
+from admin .views import AdminLoginView
 urlpatterns = [
     # path('signup/',SingnUpViews.as_view(),name='signUp'),
     # path('verify/',VerifyOTP.as_view(),name='verify'),
@@ -16,4 +16,6 @@ urlpatterns = [
     path('profile/',UserProfileView.as_view(),name='profile'),
     path('cart/',CartViews.as_view(),name='cart'),
     path('cart/<int:item_id>/',CartViews.as_view(),name='cart-items'),
+    path('login/',AdminLoginView.as_view(),name='admin')
+    
 ]
