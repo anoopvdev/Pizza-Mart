@@ -217,6 +217,9 @@ class UserProfileSerializer(serializers.ModelSerializer):
     def validate_phone(self, value):
         value = value.strip()
 
+        if not re.fullmatch(r"[6-9]\d{9}",value):
+            raise serializers.ValidationError("Enter a valid 10-digit Number ")
+
         queryset = User.objects.filter(phone=value)
 
         if self.instance:
@@ -226,7 +229,13 @@ class UserProfileSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "This phone number is already registered."
             )
+        
 
+        return value
+    def validate_first_name(self,value):
+        value = value.strip()
+        if not re.fullmatch(r"^[A-Z][a-z]+(?:\s[A-za-z]+)*$",value):
+            raise serializers.ValidationError("Username must contain letter only.")
         return value
 
     def update(self, instance, validated_data):
@@ -267,13 +276,23 @@ class CartItemsSerializer(serializers.Serializer):
         model = CartItems
         fields = [
             "id",
-            "pizza",
+            "pizzas",
             "pizza_name",
             "pizza_price",
-            "qunatity"
+            "quantity"
+            
         ]
 class CartSerializer(serializers.Serializer):
     items = CartItemsSerializer(many = True , read_only = True)
     class Meta:
         model = Cart
         fields = ["id","items"]  
+
+
+class AddressSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Address
+        fields = "__all__"
+        read_only_fields = ["id","user","created_at"]
+        

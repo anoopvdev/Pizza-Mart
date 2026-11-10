@@ -10,7 +10,7 @@ import {
 } from "react-icons/fa";
 import { useCart } from "../context/CartCotext";
 import "./Cart.css"
-
+import { useNavigate } from "react-router-dom";
 export default function Cart() {
   const {
     cartItems,
@@ -21,7 +21,7 @@ export default function Cart() {
     cartTotal,
     loading,
   } = useCart();
-
+  const navigate = useNavigate();
   return (
     <div className="cart-page">
       <nav className="navbar cart-navbar">
@@ -163,11 +163,15 @@ export default function Cart() {
                   type="button"
                   className="checkout-button"
                   onClick={() =>
-                    alert("Your cart is ready! Checkout will be connected next.")
+                    navigate("/checkout")
                   }
-                >
+                  disabled={cartItems.length === 0 }
+                > 
+              
                   Proceed to Checkout
+                  
                 </button>
+                
 
                 <p className="cart-secure-note">
                   Freshly prepared with love and care.

@@ -1,7 +1,6 @@
 
 import { FaPizzaSlice, FaArrowRight, FaBars,FaSearch,FaShoppingCart } from "react-icons/fa";
 import { useState } from "react";
-import Navbar from "./Navbar";
 import "./LandingPage.css"
 import { Link } from "react-router-dom";
 const pizzaImages = [
@@ -40,7 +39,8 @@ export default function LandingPage() {
   const scrollingPizzas = [...pizzaImages, ...pizzaImages];
 
   return (
-    <main className="pizza-landing" id="home">
+    // <main className="pizza-landing" id="home">
+    <>
         {/* <Navbar /> */}
         <nav className="navbar navbar-expand-lg bg-white sticky-top pizza-navbar ">
       <div className="container">
@@ -70,7 +70,7 @@ export default function LandingPage() {
               </li>
             ))} */}
             <div className='navbar-nav d-flex flex-row gap-5'>
-            <Link className='text-decoration-none text-dark ' to="/home" >Home</Link>
+            <Link className='text-decoration-none text-dark ' to="/signup" >Home</Link>
             <Link className='text-decoration-none text-dark ' to='/signup'>Menu</Link>
             <Link className='text-decoration-none text-dark 'to='/signup'>About</Link>
             <Link className='text-decoration-none text-dark 'to='/signup'>Contact</Link>
@@ -97,11 +97,6 @@ export default function LandingPage() {
           </form>
 
           <div className="nav-actions ">
-            
-            <a href="/cart" className="btn btn-danger cart-button ">
-              <FaShoppingCart /> Cart (0)
-            </a>
-            
             <div className="d-flex mt- justify-content-end ">
               <Link to="/login" className='text-decoration-none'>
             <button className="btn btn-danger d-flex align-items-center gap-2 " type="button">
@@ -114,7 +109,7 @@ export default function LandingPage() {
         </div>
       </div>
     </nav>
-
+ <main className="pizza-landing" id="home">
       <section className="pizza-hero" id="story">
         <div className="hero-glow hero-glow-one" />
         <div className="hero-glow hero-glow-two" />
@@ -189,9 +184,9 @@ export default function LandingPage() {
             <h2>Good food. Great mood. <span>Every time.</span></h2>
           </div>
 
-          <a href="/signup" className="bottom-order-link">
+          <Link to='/login' className="bottom-order-link">
             Start your order <FaArrowRight />
-          </a>
+          </Link>
         </div>
       </section>
 
@@ -202,5 +197,6 @@ export default function LandingPage() {
         </div>
       </footer>
     </main>
+    </>
   );
 }

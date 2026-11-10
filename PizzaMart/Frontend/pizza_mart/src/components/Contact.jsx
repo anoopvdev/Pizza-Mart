@@ -69,45 +69,9 @@ function Contact() {
   };
 
   return (
+    <>
+    <Navbar />
     <div className="contact-page">
-      {/* Navbar */}
-      {/* <nav className="navbar navbar-expand-lg contact-navbar">
-        <div className="container">
-          <Link className="navbar-brand contact-brand" to="/home">
-            🍕 Pizza<span>Mart</span>
-          </Link>
-
-          <button
-            className="navbar-toggler"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#contactNavbar"
-            aria-controls="contactNavbar"
-            aria-expanded="false"
-            aria-label="Toggle navigation"
-          >
-            <span className="navbar-toggler-icon"></span>
-          </button>
-
-          <div
-            className="collapse navbar-collapse"
-            id="contactNavbar"
-          >
-            <div className="navbar-nav ms-auto align-items-lg-center gap-lg-3">
-              <Link className="nav-link" to="/home">Home</Link>
-              <Link className="nav-link" to="/menu">Menu</Link>
-              <Link className="nav-link" to="/about">About</Link>
-              <Link className="nav-link active" to="/contact">
-                Contact
-              </Link>
-              <Link className="btn contact-order-btn" to="/menu">
-                Order Now
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav> */}
-      <Navbar />
 
       {/* Hero */}
       <section className="contact-hero">
@@ -385,6 +349,7 @@ function Contact() {
         </div>
       </footer>
     </div>
+    </>
   );
 }
 

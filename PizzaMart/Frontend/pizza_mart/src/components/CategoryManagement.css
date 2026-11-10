@@ -1,0 +1,93 @@
+
+.category-management {
+  width: 100%;
+  color: #17233c;
+}
+
+.category-management .card {
+  border-radius: 10px;
+  border: 1px solid #edf0f5;
+}
+
+.category-stat-card {
+  min-height: 105px;
+}
+
+.category-stat-card .card-body {
+  padding: 20px;
+}
+
+.category-stat-card h3 {
+  font-size: 27px;
+  font-weight: 700;
+  margin: 8px 0 0;
+}
+
+.category-management .form-label {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.category-management .form-control {
+  border-color: #dce2ea;
+  border-radius: 7px;
+}
+
+.category-management .form-control:focus {
+  border-color: #dc3545;
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.1);
+}
+
+.category-management table {
+  font-size: 13px;
+}
+
+.category-management thead th {
+  color: #68758a;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.category-management tbody td {
+  vertical-align: middle;
+}
+
+.category-table-image,
+.category-image-preview {
+  width: 55px;
+  height: 55px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.category-image-preview {
+  width: 120px;
+  height: 100px;
+}
+
+.category-table-placeholder {
+  width: 55px;
+  height: 55px;
+  border-radius: 8px;
+  background: #f1f3f6;
+  color: #929cac;
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+}
+
+.category-description {
+  max-width: 250px;
+  white-space: normal;
+  color: #788397;
+}
+
+@media (max-width: 576px) {
+  .category-stat-card .card-body {
+    padding: 14px;
+  }
+
+  .category-stat-card h3 {
+    font-size: 22px;
+  }
+}

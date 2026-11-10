@@ -18,6 +18,17 @@ import About from './components/About'
 import Contact from './components/Contact'
 import Admin from './components/Admin'
 import Logout from './components/Logot'
+import UserManagement from './components/UserManagement'
+import AdminDashboard from './components/Dashboard'
+import OrderManagement from './components/OrderManagement'
+import AdminLayout from './components/AdminLayout'
+import ProductManagement from './components/ProductManagement'
+import CouponManagement from './components/CouponsManagement'
+import CategoryManagement from './components/CategoryManagement'
+import Checkout from './components/Checkout'
+import OrderSuccess from './components/Ordersuccess'
+import MyOrders from './components/MyOrders'
+import MyAddresses from './components/MyAddress'
 const App = () => {
   return (
     <>
@@ -38,8 +49,19 @@ const App = () => {
       <Route path='/cart' element={<Cart />} />
       <Route path='/contact' element ={<Contact />} />
       <Route path='/logout' element = {<Logout />} />
-      <Route path='/admin' element={<Admin />} />
-      
+      <Route path='/admin/login' element={<Admin />} />
+      <Route path='/checkout' element={<Checkout />} />
+      <Route path='/order-success/:orderNumber' element={<OrderSuccess />} />
+      <Route path='/my-order' element={<MyOrders />} />
+      <Route path='/my-address' element={<MyAddresses />} />
+      <Route path='/admin' element={<AdminLayout />}>
+      <Route path='dashboard' element={<AdminDashboard /> }/>
+      <Route path='users' element={<UserManagement />} />
+      <Route path='products' element={<ProductManagement />} />
+      <Route path='orders' element={<OrderManagement />} />
+      <Route path='coupons' element={<CouponManagement />} />
+      <Route path='categorys' element={<CategoryManagement />} />
+      </Route>
     </Routes>
     </ProfileProvider>  
     </BrowserRouter>

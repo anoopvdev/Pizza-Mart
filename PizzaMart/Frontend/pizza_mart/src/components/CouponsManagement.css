@@ -1,0 +1,68 @@
+
+.coupon-management {
+  width: 100%;
+  color: #17233c;
+}
+
+.coupon-management .card {
+  border-radius: 10px;
+  border: 1px solid #edf0f5;
+}
+
+.coupon-stat-card {
+  min-height: 105px;
+}
+
+.coupon-stat-card .card-body {
+  padding: 20px;
+}
+
+.coupon-stat-card h3 {
+  font-size: 27px;
+  font-weight: 700;
+  margin-top: 8px;
+  margin-bottom: 0;
+}
+
+.coupon-management .form-label {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.coupon-management .form-control,
+.coupon-management .form-select {
+  min-height: 42px;
+  border-color: #dce2ea;
+  border-radius: 7px;
+}
+
+.coupon-management .form-control:focus,
+.coupon-management .form-select:focus {
+  border-color: #dc3545;
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.1);
+}
+
+.coupon-management table {
+  font-size: 13px;
+}
+
+.coupon-management thead th {
+  white-space: nowrap;
+  color: #68758a;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.coupon-management tbody td {
+  white-space: nowrap;
+}
+
+@media (max-width: 576px) {
+  .coupon-stat-card .card-body {
+    padding: 14px;
+  }
+
+  .coupon-stat-card h3 {
+    font-size: 22px;
+  }
+}

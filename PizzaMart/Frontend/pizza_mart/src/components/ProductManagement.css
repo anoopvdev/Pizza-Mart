@@ -1,0 +1,295 @@
+
+/* ==============================
+   PRODUCT MANAGEMENT
+============================== */
+
+.product-management {
+    padding: 25px;
+    background: #f8f9fc;
+    min-height: 100vh;
+    color: #292929;
+}
+
+/* Header */
+
+.product-management h3 {
+    font-size: 25px;
+    font-weight: 700;
+    color: #292929;
+    margin-bottom: 5px;
+}
+
+.product-management .text-muted {
+    font-size: 14px;
+}
+
+/* Add Product Button */
+
+.product-management .btn-danger {
+    background: #e63946;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-weight: 600;
+    transition: 0.3s ease;
+}
+
+.product-management .btn-danger:hover {
+    background: #c92535;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(230, 57, 70, 0.2);
+}
+
+/* ==============================
+   FORM CARD
+============================== */
+
+.product-management .card {
+    border-radius: 12px;
+    overflow: hidden;
+    background: #ffffff;
+}
+
+.product-management .card-header {
+    border-bottom: 1px solid #eeeeee;
+    padding: 18px 22px;
+}
+
+.product-management .card-header h5 {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.product-management .card-body {
+    padding: 22px;
+}
+
+/* Form Labels */
+
+.product-management .form-label {
+    font-size: 14px;
+    color: #333333;
+    margin-bottom: 8px;
+}
+
+/* Inputs */
+
+.product-management .form-control,
+.product-management .form-select {
+    border: 1px solid #dddddd;
+    border-radius: 8px;
+    padding: 11px 13px;
+    font-size: 14px;
+    transition: 0.3s ease;
+}
+
+.product-management .form-control:focus,
+.product-management .form-select:focus {
+    border-color: #e63946;
+    box-shadow: 0 0 0 3px rgba(230, 57, 70, 0.1);
+}
+
+.product-management textarea {
+    resize: vertical;
+}
+
+/* ==============================
+   PRODUCT TABLE
+============================== */
+
+.product-management .table {
+    margin-bottom: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.product-management .table thead th {
+    background: #f5f6fa;
+    color: #555555;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 16px 14px;
+    border-bottom: 1px solid #eeeeee;
+    white-space: nowrap;
+}
+
+.product-management .table tbody td {
+    padding: 15px 14px;
+    vertical-align: middle;
+    font-size: 14px;
+    border-bottom: 1px solid #eeeeee;
+}
+
+.product-management .table tbody tr {
+    transition: background 0.2s ease;
+}
+
+.product-management .table tbody tr:hover {
+    background: #fff8f8;
+}
+
+.product-management .table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Product Image */
+
+.product-management .table img {
+    border-radius: 9px;
+    border: 1px solid #eeeeee;
+    transition: 0.3s ease;
+}
+
+.product-management .table img:hover {
+    transform: scale(1.08);
+}
+
+/* Product Name */
+
+.product-management .table strong {
+    color: #292929;
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+/* Description */
+
+.product-management .table .small {
+    font-size: 12px;
+    color: #888888;
+}
+
+/* ==============================
+   CATEGORY BADGES
+============================== */
+
+.product-management .badge {
+    padding: 7px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+/* ==============================
+   STATUS BADGES
+============================== */
+
+.product-management .bg-success {
+    background-color: #e2f7e9 !important;
+    color: #198754 !important;
+}
+
+.product-management .bg-secondary {
+    background-color: #eeeeee !important;
+    color: #666666 !important;
+}
+
+.product-management .bg-danger {
+    background-color: #ffe5e5 !important;
+    color: #dc3545 !important;
+}
+
+/* ==============================
+   ACTION BUTTONS
+============================== */
+
+.product-management .table .btn {
+    border-radius: 7px;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 7px 11px;
+    transition: all 0.25s ease;
+    white-space: nowrap;
+}
+
+.product-management .btn-outline-primary {
+    color: #3478db;
+    border-color: #3478db;
+}
+
+.product-management .btn-outline-primary:hover {
+    background: #3478db;
+    color: white;
+}
+
+.product-management .btn-outline-warning {
+    color: #d18b00;
+    border-color: #e5a000;
+}
+
+.product-management .btn-outline-warning:hover {
+    background: #e5a000;
+    color: white;
+}
+
+.product-management .btn-outline-success {
+    color: #198754;
+    border-color: #198754;
+}
+
+.product-management .btn-outline-success:hover {
+    background: #198754;
+    color: white;
+}
+
+.product-management .btn-outline-danger {
+    color: #dc3545;
+    border-color: #dc3545;
+}
+
+.product-management .btn-outline-danger:hover {
+    background: #dc3545;
+    color: white;
+}
+
+/* Disabled button */
+
+.product-management .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Error Alert */
+
+.product-management .alert-danger {
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+/* ==============================
+   RESPONSIVE DESIGN
+============================== */
+
+@media (max-width: 992px) {
+    .product-management {
+        padding: 18px;
+    }
+
+    .product-management .table {
+        min-width: 850px;
+    }
+}
+
+@media (max-width: 576px) {
+    .product-management {
+        padding: 12px;
+    }
+
+    .product-management h3 {
+        font-size: 21px;
+    }
+
+    .product-management .card-body {
+        padding: 14px;
+    }
+
+    .product-management .table {
+        min-width: 800px;
+    }
+
+    .product-management .btn {
+        font-size: 11px;
+    }
+}

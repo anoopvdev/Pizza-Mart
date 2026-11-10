@@ -8,10 +8,11 @@ import Navbar from "./Navbar";
 const About = () => {
 
   return (
-    
+    <>
+    <Navbar />
     <div className="about-page">
       {/* Navbar */}
-      <Navbar />
+      
       {/* Hero Section */}
       <section className="about-hero">
         <div className="container">
@@ -258,6 +259,7 @@ const About = () => {
         </div>
       </footer>
     </div>
+    </>
   );
 };
 

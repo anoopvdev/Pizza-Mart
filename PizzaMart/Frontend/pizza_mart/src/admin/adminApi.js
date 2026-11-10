@@ -1,16 +1,22 @@
 import axios from "axios";
 
 const adminApi = axios.create({
-    baseURL: "http://127.0.0.1:8000/api/admin/auth/login/"
+    baseURL: "http://127.0.0.1:8000/api/admin/auth/",
 });
 
-adminApi.interceptors.request.use((config)=>{
-    const token = localStorage.getItem('admin_access');
+adminApi.interceptors.request.use((config) => {
 
-    if(token){
-        config.headers.Authorization = `Bearer ${token}`
+    const token = localStorage.getItem("adminAccess");
+
+    console.log("Token:", token);
+
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
     }
-    return config
+
+    console.log("Request headers:", config.headers);
+
+    return config;
 });
 
-export default adminApi
+export default adminApi;

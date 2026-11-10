@@ -328,16 +328,16 @@ const updatedProfile = {
                 <Link className="active" to="/profile">
                   <i className="bi bi-person"></i> My Profile
                 </Link>
-                <Link to="/orders">
+                <Link to="/my-order">
                   <i className="bi bi-box-seam"></i> My Orders
                 </Link>
                 <Link to="/cart">
                   <i className="bi bi-cart3"></i> My Cart
                 </Link>
-                <Link to="/addresses">
+                <Link to="/my-address">
                   <i className="bi bi-geo-alt"></i> Address Book
                 </Link>
-                <Link to="/forgotpassword">
+                <Link to="/change-password">
                   <i className="bi bi-lock"></i> Change Password
                 </Link>
                 <Link to="/logout">
@@ -468,7 +468,7 @@ const updatedProfile = {
                         />
                       </div>
 
-                      <div className="col-md-6">
+                      {/* <div className="col-md-6">
                         <label className="form-label">Gender</label>
                         <select
                           className="form-select profile-input"
@@ -485,7 +485,7 @@ const updatedProfile = {
                             Prefer not to say
                           </option>
                         </select>
-                      </div>
+                      </div> */}
                     </div>
                   </div>
                 </div>

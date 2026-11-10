@@ -12,32 +12,23 @@ from django.contrib.auth.hashers import make_password,check_password
 from django.core.mail import send_mail
 from django.db import transaction
 from django.utils import timezone
+from rest_framework import viewsets
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from .models import EmailOTP,passwordRestOTP,UserProfile
 from django.contrib.auth import get_user_model
 import logging
 import hashlib
+from rest_framework.decorators import action
 from django.conf import settings
 from django.core.validators import validate_email
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser,FormParser,JSONParser
 logger = logging.getLogger(__name__)
-
+import uuid
 User = get_user_model()
-"""----------------------------SignUp views----------------------------"""
 
 
-"""----------------------------verifyOtp views----------------------------"""
-
-
-
-
-            
-
-
-
-# """------------------------------------------------Sample 2---------------------------------"""
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def login_user(request):
@@ -589,7 +580,7 @@ class CartViews(APIView):
 
     def get(self,request):
         cart,created = Cart.objects.get_or_create(user=request.user)
-        items = CartItems.objects.filter(cart=cart)
+        items = CartItems.objects.filter(cart=cart,user=request.user).select_related("pizzas")
         data = []
         for item in items:
             data.append({
@@ -597,52 +588,82 @@ class CartViews(APIView):
                 "pizza_id":item.pizzas.id,
                 "name":item.pizzas.name,
                 "price":float(item.pizzas.price),
-                "qunatity":item.quantity,
+                "image": request.build_absolute_uri(
+                    item.pizzas.image.url
+             ) if item.pizzas.image else None,
+                "quantity":item.quantity,
                 "subtotal":float(item.pizzas.price * item.quantity)
             })
-            return Response({
+        return Response({
                 "cart_id":cart.id,
                 "items":data
-            })
-        serializer = CartSerializer(cart)
-        return Response(serializers.data)
+            }, status=status.HTTP_200_OK)
+    
+    # serializer = CartSerializer(cart)
 
-    def post(self,request):
+    # return Response(serializer.data)
+
+    
+    def post(self, request):
+
         user = request.user
-        Cart.objects.get_or_create(user=user)
-        pizza_id = request.data.get('pizza_id')
-        quantity = request.data.get("quantity",1)
+        pizza_id = request.data.get("pizza_id")
+        quantity = request.data.get("quantity", 1)
 
+    # Validate quantity
         try:
             quantity = int(quantity)
             if quantity < 1:
-                raise ValueError()
-        except (ValueError,TypeError):
-            return Response(
-                {
-                    "error":"Qantity must be a positive"
-                },status=status.HTTP_400_BAD_REQUEST
-            )
-        try:
-            pizza = Pizzas.objects.get(id=pizza_id,is_avilable= True)
-        except Pizzas.DoesNotExist:
-            return Response({
-                "error":"Product not found"
-            },status=status.HTTP_404_NOT_FOUND)
+                raise ValueError
 
-        cart,create = Cart.objects.get_or_create(user=request.user)
-        cart_items,created = CartItems.objects.get_or_create(cart=cart,pizza=pizza,defaults={"qunatity":quantity})
-        if not create:
-            cart_items.quantity += quantity
-            cart_items.save()
+        except (ValueError, TypeError):
             return Response({
-                "message":"Product added to cart successfully"
-            },status=status.HTTP_200_OK)
+            "error": "Quantity must be a positive number"
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+
+        try:
+            pizza = Pizzas.objects.get(
+            id=pizza_id,
+            is_available=True
+        )
+
+        except (Pizzas.DoesNotExist, ValueError, TypeError):
+            return Response({
+            "error": "Product not found"
+        }, status=status.HTTP_404_NOT_FOUND)
+
+        cart, cart_created = Cart.objects.get_or_create(
+            user=user
+    )
+
+        cart_item, item_created = CartItems.objects.get_or_create(
+        cart=cart,
+        pizzas=pizza,
+        user=user,
+        defaults={"quantity": quantity}
+    )
+
+        if not item_created:
+            cart_item.quantity += quantity
+            cart_item.save(update_fields=["quantity"])
+
+   
+        return Response({
+            "message": "Product added to cart successfully",
+            "item_id": cart_item.id,
+            "pizza_id": pizza.id,
+            "quantity": cart_item.quantity
+        }, status=(
+        status.HTTP_201_CREATED
+        if item_created else status.HTTP_200_OK
+    ))
+
 
     def patch(self,request,item_id):
         try:
             cart = Cart.objects.get(user=request.user)
-            item = CartItems.objects.get(id=item_id,cart=cart)
+            item = CartItems.objects.get(id=item_id,cart=cart,user=request.user)
         except(Cart.DoesNotExist,CartItems.DoesNotExist):
             return Response({
                 "error":"Cart items not found"
@@ -658,22 +679,22 @@ class CartViews(APIView):
                 item.delete()
                 return Response({
                     "message":"Item removed from cart"
-                })
+                },status=status.HTTP_200_OK)
         else:
             return Response({
                 "error":"Invalid action"
             },status=status.HTTP_400_BAD_REQUEST)
-        item.save()
+        item.save(update_fields=["quantity"])
         return Response({
-            "message":"Cart qunatity updated",
-            "qunatity": item.quantity
-        })
+            "message":"Cart quantity updated",
+            "quantity": item.quantity
+        }, status=status.HTTP_200_OK)
 
     def delete(self,request,item_id):
 
         try:
             cart =Cart.objects.get(user=request.user)
-            item = CartItems.objects.get(id=item_id,cart=cart)
+            item = CartItems.objects.get(id=item_id,cart=cart,user=request.user)
         except(Cart.DoesNotExist,CartItems.DoesNotExist):
             return Response({
                 "error":"Cart item not found"
@@ -684,5 +705,164 @@ class CartViews(APIView):
             "message":"Item removed successfully",
             
         },status=status.HTTP_200_OK)
+
+class AddressListCreateAPIView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    # GET - Display all addresses
+    def get(self, request):
+        addresses = Address.objects.filter(
+            user=request.user
+        ).order_by("-is_default", "-created_at")
+
+        serializer = AddressSerializer(
+            addresses,
+            many=True,
+            context={"request": request}
+        )
+
+        return Response(serializer.data)
+
+    # POST - Add new address
+    def post(self, request):
+        serializer = AddressSerializer(data=request.data)
+
+        serializer.is_valid(raise_exception=True)
+
+        is_first = not Address.objects.filter(
+            user=request.user
+        ).exists()
+
+        is_default = (
+            serializer.validated_data.get("is_default", False)
+            or is_first
+        )
+
+        if is_default:
+            Address.objects.filter(
+                user=request.user
+            ).update(is_default=False)
+
+        serializer.save(
+            user=request.user,
+            is_default=is_default
+        )
+
+        return Response(
+            {
+                "message": "Address added successfully",
+                "address": serializer.data
+            },
+            status=status.HTTP_201_CREATED
+        )
+
+
+class AddressDetailAPIView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self, request, pk):
+        try:
+            return Address.objects.get(
+                id=pk,
+                user=request.user
+            )
+        except Address.DoesNotExist:
+            return None
+
+    # GET - Single address
+    def get(self, request, pk):
+        address = self.get_object(request, pk)
+
+        if not address:
+            return Response(
+                {"error": "Address not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = AddressSerializer(address)
+        return Response(serializer.data)
+
+    # PATCH - Update address
+    def patch(self, request, pk):
+        address = self.get_object(request, pk)
+
+        if not address:
+            return Response(
+                {"error": "Address not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = AddressSerializer(
+            address,
+            data=request.data,
+            partial=True
+        )
+
+        serializer.is_valid(raise_exception=True)
+
+        if serializer.validated_data.get("is_default", False):
+            Address.objects.filter(
+                user=request.user
+            ).update(is_default=False)
+
+        serializer.save()
+
+        return Response({
+            "message": "Address updated successfully",
+            "address": serializer.data
+        })
+
+    # DELETE - Delete address
+    def delete(self, request, pk):
+        address = self.get_object(request, pk)
+
+        if not address:
+            return Response(
+                {"error": "Address not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        address.delete()
+
+        return Response(
+            {"message": "Address deleted successfully"},
+            status=status.HTTP_200_OK
+        )
+
+
+class MakeDefaultAddressAPIView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        try:
+            address = Address.objects.get(
+                id=pk,
+                user=request.user
+            )
+        except Address.DoesNotExist:
+            return Response(
+                {"error": "Address not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        Address.objects.filter(
+            user=request.user
+        ).update(is_default=False)
+
+        address.is_default = True
+        address.save(update_fields=["is_default"])
+
+        return Response({
+            "message": "Default address updated successfully"
+        })
+
+        
+        
+
+
+
 
 

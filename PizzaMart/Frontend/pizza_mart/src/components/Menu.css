@@ -268,10 +268,11 @@
 }
 
 .food-type {
+  width: 160px;
   font-size: 10px;
   font-weight: 800;
   border: 1px solid;
-  padding: 5px 8px;
+  padding: 5px 10px;
   border-radius: 6px;
 }
 
@@ -292,7 +293,7 @@
   color: #84766e;
   line-height: 1.7;
   min-height: 44px;
-  margin: 14px 0 20px;
+  margin: 1px 0 20px;
 }
 
 .pizza-card-footer {
@@ -327,7 +328,7 @@
   border: none;
   background: #fff0e9;
   color: #e54828;
-  padding: 11px 17px;
+  padding: 10px 13px;
   border-radius: 11px;
   font-size: 13px;
   font-weight: 800;
@@ -455,3 +456,5 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+

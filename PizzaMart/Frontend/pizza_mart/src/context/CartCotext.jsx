@@ -1,111 +1,168 @@
 
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
-import axios from 'axios'
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState
+} from "react";
+
+import axios from "axios";
+
 const CartContext = createContext();
-const API =  "http://127.0.0.1:8000/api/user/auth/cart/"
+
+const API = "http://127.0.0.1:8000/api/user/auth/cart/";
+
 export function CartProvider({ children }) {
-  const[loading,setLoading] = useState(false)
-  const[cartItems,setCartItems] = useState([])
-  const accessToken = localStorage.getItem("access")
-  const getToken = () =>{
-    localStorage.getItem("access")
-  }
-  // const [cartItems, setCartItems] = useState(() => {
-  //   try {
-  //     return JSON.parse(localStorage.getItem("pizzamart-cart")) || [];
-  //   } catch {
-  //     return [];
-  //   }
-  // });
-// ---------------------------next Step--------------------------------------
-  // useEffect(() => {
-  //   localStorage.setItem("pizzamart-cart", JSON.stringify(cartItems));
-  // }, [cartItems]);
-  const getHeaders = () =>({
-    Authorization : `Bearer ${getToken()}`
+  const [loading, setLoading] = useState(false);
+  const [cartItems, setCartItems] = useState([]);
+
+  const getToken = () => {
+    return localStorage.getItem("access");
+  };
+
+  const getHeaders = () => ({
+    Authorization: `Bearer ${getToken()}`,
   });
-  const fetchCart = useCallback(async ()=>{
+
+  // 1. Fetch cart from Django backend
+  const fetchCart = useCallback(async () => {
     const token = getToken();
 
-    if(!token){
+    if (!token) {
       setCartItems([]);
       return;
     }
-    try{
+
+    try {
       setLoading(true);
-      const response = await axios.get(API,{
-        headers : getHeaders(),
+
+      const response = await axios.get(API, {
+        headers: getHeaders(),
       });
+
+      console.log("Cart API Response:", response.data);
+
       setCartItems(response.data.items || []);
 
-    }catch(err){
-      console.log("Fetch cart error",err.response?.data || err.message)
-    }finally{
-      setLoading(false)
+    } catch (error) {
+      console.log(
+        "Fetch cart error:",
+        error.response?.data || error.message
+      );
+    } finally {
+      setLoading(false);
     }
-  },[])
+  }, []);
+
+  useEffect(() => {
+    fetchCart();
+  }, [fetchCart]);
+
+
   const addToCart = async (pizza) => {
-    try{
-      const response = await axios.post(API,{
-        pizza_id : pizza.id,
-        quantity : 1,
-      },{
-        headers :{
-          Authorization : `Bearer ${accessToken}`
+    const token = getToken();
+
+    if (!token) {
+      console.log("Please login first");
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        API,
+        {
+          pizza_id: pizza.id,
+          quantity: 1,
+        },
+        {
+          headers: getHeaders(),
         }
-      });
+      );
+
+      console.log("Added to cart:", response.data);
+
       await fetchCart();
+
       return response.data;
-    }catch(error){
-      console.log("Add cart error:",error.response?.data || error.message);
-      // throw error;
+
+    } catch (error) {
+      console.log(
+        "Add cart error:",
+        error.response?.data || error.message
+      );
     }
   };
 
-  const increaseQuantity = async (id) =>{
-    try{
+  // 4. Increase quantity
+  const increaseQuantity = async (id) => {
+    try {
       await axios.patch(
         `${API}${id}/`,
-        {action : "increase"},
-        {headers : getHeaders()}
+        { action: "increase" },
+        { headers: getHeaders() }
       );
-      await fetchCart();
-    }catch(error){
-      console.log("Increase error : ",error.response?.data || error.message)
-    }
-  }
 
-  const decreaseQuantity = async (id) =>{
-    try{
-      await axios.patch(`${API}${id}/`,
-        { action: "decrease"},
-        {headers : getHeaders()}
+      await fetchCart();
+
+    } catch (error) {
+      console.log(
+        "Increase error:",
+        error.response?.data || error.message
       );
-      await fetchCart();
-    }catch(error){
-      console.log("Decrease error",error.response?.data || error.message)
     }
-  }
-  const removeFromCart = async (id) =>{
-    try{
-      await axios.delete(`${API}${id}/`,{
-        headers : getHeaders(),
-      })
-      await fetchCart()
-    }catch(error){
-      console.log("Remove cart ",error.response?.data || error.message)
-    }
-  }
+  };
 
-  const clearCart = () => setCartItems([]);
+  // 5. Decrease quantity
+  const decreaseQuantity = async (id) => {
+    try {
+      await axios.patch(
+        `${API}${id}/`,
+        { action: "decrease" },
+        { headers: getHeaders() }
+      );
+
+      await fetchCart();
+
+    } catch (error) {
+      console.log(
+        "Decrease error:",
+        error.response?.data || error.message
+      );
+    }
+  };
+
+  // 6. Remove item
+  const removeFromCart = async (id) => {
+    try {
+      await axios.delete(
+        `${API}${id}/`,
+        { headers: getHeaders() }
+      );
+
+      await fetchCart();
+
+    } catch (error) {
+      console.log(
+        "Remove cart error:",
+        error.response?.data || error.message
+      );
+    }
+  };
+
+  // Local clear only — not database deletion
+  const clearCart = () => {
+    setCartItems([]);
+  };
 
   const cartCount = cartItems.reduce(
-    (total, item) => total + item.quantity,
+    (total, item) => total + Number(item.quantity),
     0
   );
 
   const cartTotal = cartItems.reduce(
-    (total, item) => total + item.price * item.quantity,
+    (total, item) =>
+      total + Number(item.price) * Number(item.quantity),
     0
   );
 

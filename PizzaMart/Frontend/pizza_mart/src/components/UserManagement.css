@@ -1,0 +1,39 @@
+.user-management {
+  min-height: 100vh;
+  background-color: #f8f9fa;
+   /* width: calc(100% - 190px);
+  min-width: 0;
+  margin-left: 190px;
+  padding: 22px; */
+}
+
+.user-management h2 {
+  color: #252525;
+}
+
+.user-stat-card {
+  border: none;
+  border-radius: 12px;
+  transition: transform 0.2s ease;
+}
+
+.user-stat-card:hover {
+  transform: translateY(-3px);
+}
+
+.user-management .card {
+  border-radius: 12px;
+}
+
+.user-management .table th {
+  white-space: nowrap;
+  font-size: 14px;
+}
+
+.user-management .table td {
+  font-size: 14px;
+}
+
+.user-management .btn {
+  white-space: nowrap;
+}

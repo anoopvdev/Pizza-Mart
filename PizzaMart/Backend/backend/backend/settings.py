@@ -9,12 +9,10 @@ https://docs.djangoproject.com/en/6.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
-# import environ
-from pathlib import Path
-# env = environ.Env(
-#     DEBUG=(bool,False)
-# )
 
+from pathlib import Path
+import os
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -24,15 +22,27 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-16&*yx!72z!m41_f#sh8cf^7if-1bq0wsb3ou4j(l90eo9_lkd'
+# SECRET_KEY = 'django-insecure-16&*yx!72z!m41_f#sh8cf^7if-1bq0wsb3ou4j(l90eo9_lkd'
+
+# BASE_DIR = Path(__file__).resolve().parent.parent
+
+load_dotenv(BASE_DIR / ".env")
+ENV_FILE = BASE_DIR / ".env"
+
+print("ENV FILE LOCATION:", ENV_FILE)
+print("ENV FILE EXISTS:", ENV_FILE.exists())
+
+load_dotenv(ENV_FILE)
+
+SECRET_KEY = os.getenv("SECRET_KEY")
+
+if not SECRET_KEY:
+    raise ValueError("SECRET_KEY is missing from .env")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 
-ALLOWED_HOSTS = [
-    "127.0.0.1",
-    "localhost",
-]
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
 
 
 # Application definition
@@ -45,6 +55,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'user',
+    'products',
+    'admin.apps.AdminConfig',
     'rest_framework',
     'corsheaders',
 ]
@@ -89,24 +101,16 @@ TEMPLATES = [
 WSGI_APPLICATION = 'backend.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
 
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
-        "NAME": "pizzamart",
-        "USER": "root",
-        "PASSWORD": "database@12345",
-        "HOST": "127.0.0.1",
-        "PORT": "3306",
+        "NAME": os.getenv("DB_NAME"),
+        "USER": os.getenv("DB_USER"),
+        "PASSWORD": os.getenv("DB_PASSWORD"),
+        "HOST":  os.getenv("DB_HOST", "127.0.0.1"),
+        "PORT": os.getenv("DB_PORT", "3306"),
     }
 }
 
@@ -148,48 +152,43 @@ USE_TZ = True
 STATIC_URL = 'static/'
 CORS_ALLOW_ALL_ORIGINS = True 
 AUTH_USER_MODEL = "user.User"
+
+
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
 
-EMAIL_HOST_USER = "anoopvanoopv881@gmail.com"
-EMAIL_HOST_PASSWORD = "gjzorgrklvfkmbwk"
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-
-EMAIL_HOST = "smtp.gmail.com"
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_USE_SSL = False
-
-EMAIL_HOST_USER = "anoopvanoopv881@gmail.com"
-EMAIL_HOST_PASSWORD = "gjzorgrklvfkmbwk"
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-
-
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-#  /Admin side / 
-
-# from decouple import config
 
 
-# ADMIN_USERNAME = config("ADMIN_USERNAME")
-# ADMIN_EMAIL = config("ADMIN_EMAIL")
-# ADMIN_PASSWORD = config("ADMIN_PASSWORD")
-import os
-from pathlib import Path
-from dotenv import load_dotenv
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+# BASE_DIR = Path(__file__).resolve().parent.parent
 
-load_dotenv(BASE_DIR / ".env")
+# load_dotenv(BASE_DIR / ".env")
 
 PIZZAMART_ADMIN_EMAIL = os.getenv("PIZZAMART_ADMIN_EMAIL")
 PIZZAMART_ADMIN_PASSWORD = os.getenv("PIZZAMART_ADMIN_PASSWORD")
 
 if not PIZZAMART_ADMIN_EMAIL or not PIZZAMART_ADMIN_PASSWORD:
     raise ValueError("Admin email or password is missing from .env")
+
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "ROTATE_REFRESH_TOKENS": True,
+}
+
+
+
+RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID")
+RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
