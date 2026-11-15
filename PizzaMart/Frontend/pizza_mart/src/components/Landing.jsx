@@ -192,8 +192,9 @@ export default function LandingPage() {
 
       <footer className="pizza-footer" id="contact">
         <div className="container d-flex flex-wrap justify-content-between gap-2">
-          <span>© 2026 PizzaMart</span>
+          <span>© 2026 PizzaMart  Built With ❤️ by Anoop V</span>
           <span>Made with love and extra cheese 🍕</span>
+
         </div>
       </footer>
     </main>
