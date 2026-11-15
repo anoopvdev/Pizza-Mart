@@ -197,7 +197,17 @@ RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
 
 
 
+ALLOWED_HOSTS = [
+    "pizza-mart-mu8r.onrender.com",
+]
 
+CORS_ALLOWED_ORIGINS = [
+    "https://pizza-mart-coral.vercel.app/",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://pizza-mart-coral.vercel.app/",
+]
 
 
 
