@@ -202,11 +202,11 @@ ALLOWED_HOSTS = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
-    "https://pizza-mart-coral.vercel.app/",
+   "https://pizza-mart-coral.vercel.app",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://pizza-mart-coral.vercel.app/",
+   "https://pizza-mart-coral.vercel.app",
 ]
 
 
