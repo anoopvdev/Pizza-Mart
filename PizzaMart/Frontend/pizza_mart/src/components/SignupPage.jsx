@@ -114,7 +114,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
   try {
     const response = await axios.post(
-      "http://127.0.0.1:8000/api/user/auth/signup/",
+      "https://pizza-mart-mu8r.onrender.com/api/user/auth/signup/",
       UserData
     );
 
@@ -189,7 +189,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
   try {
     const response = await axios.post(
-      "http://127.0.0.1:8000/api/user/auth/signup/verify-otp/",
+      "https://pizza-mart-mu8r.onrender.com/api/user/auth/signup/verify-otp/",
       {
         email: email.trim().toLowerCase(),
         otp: otp.trim(),

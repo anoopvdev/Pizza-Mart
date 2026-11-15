@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-const API_URL = "http://127.0.0.1:8000/api/user/auth/addresses/";
+const API_URL = "https://pizza-mart-mu8r.onrender.com/api/user/auth/addresses/";
 
 const emptyForm = {
   full_name: "",

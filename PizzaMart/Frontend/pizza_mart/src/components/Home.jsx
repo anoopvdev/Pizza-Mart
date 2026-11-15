@@ -45,7 +45,7 @@ export default function Home() {
       return image;
     }
 
-    return `http://127.0.0.1:8000${image.startsWith("/") ? "" : "/"}${image}`;
+    return `https://pizza-mart-mu8r.onrender.com${image.startsWith("/") ? "" : "/"}${image}`;
   };
 
   // FETCH PRODUCTS FROM BACKEND
@@ -59,7 +59,7 @@ export default function Home() {
         setError("");
 
         const response = await axios.get(
-          "http://127.0.0.1:8000/api/user/auth/products/"
+          "https://pizza-mart-mu8r.onrender.com/api/user/auth/products/"
         );
 
         const data = response.data;

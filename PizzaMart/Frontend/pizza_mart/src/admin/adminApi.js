@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const adminApi = axios.create({
-    baseURL: "http://127.0.0.1:8000/api/admin/auth/",
+    baseURL: "https://pizza-mart-mu8r.onrender.com/api/admin/auth/",
 });
 
 adminApi.interceptors.request.use((config) => {

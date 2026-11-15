@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useCart } from "../context/CartCotext";
 
-const API = "http://127.0.0.1:8000/api/user/auth/";
+const API = "https://pizza-mart-mu8r.onrender.com/api/user/auth/";
 
 const Checkout = () => {
 

@@ -4,7 +4,7 @@ import axios from "axios";
 import "./UserManagement.css";
 import { Link } from "react-router-dom";
 
-const API = "http://127.0.0.1:8000/api/admin/auth/users/";
+const API = "https://pizza-mart-mu8r.onrender.com/api/admin/auth/users/";
 
 const UserManagement = () => {
    const [users, setUsers] = useState([]);
@@ -36,7 +36,7 @@ const UserManagement = () => {
       const token = localStorage.getItem("adminAccess")
       console.log("Admin token exists : ",!!token)
       console.log("Admin token :",token)
-      const response = await axios.get("http://127.0.0.1:8000/api/admin/auth/users/", {
+      const response = await axios.get("https://pizza-mart-mu8r.onrender.com/api/admin/auth/users/", {
         headers: {
           Authorization : `Bearer ${token}`,
         }

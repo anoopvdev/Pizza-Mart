@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 
-const API = "http://127.0.0.1:8000/api/user/auth/profile/";
+const API = "https://pizza-mart-mu8r.onrender.com/api/user/auth/profile/";
 
 const initialProfile = {
   username:"" ,
@@ -116,7 +116,7 @@ function UserProfile() {
     if (profile.profilePhoto) {
       const imageURL = profile.profilePhoto.startsWith("http")
         ? profile.profilePhoto
-        : `http://127.0.0.1:8000${
+        : `https://pizza-mart-mu8r.onrender.com${
             profile.profilePhoto.startsWith("/")
               ? profile.profilePhoto
               : `/${profile.profilePhoto}`

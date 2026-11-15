@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import adminApi from "../admin/adminApi";
 
-const API_URL = "http://127.0.0.1:8000/api/admin/auth/";
+const API_URL = "https://pizza-mart-mu8r.onrender.com/api/admin/auth/";
 
 const AdminContactEnquiries = () => {
   const [enquiries, setEnquiries] = useState([]);

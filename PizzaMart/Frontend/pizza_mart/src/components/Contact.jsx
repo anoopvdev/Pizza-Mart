@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import "./Contact.css";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
-const API = "http://127.0.0.1:8000/api/user/auth/contact/";
+const API = "https://pizza-mart-mu8r.onrender.com/api/user/auth/contact/";
 
 
 

@@ -24,7 +24,7 @@ const getImageUrl = (image) => {
   if (image.startsWith("http://") || image.startsWith("https://")) {
     return image;
   }
-  const backendBase = "http://127.0.0.1:8000";
+  const backendBase = "https://pizza-mart-mu8r.onrender.com";
   return `${backendBase}${image.startsWith("/") ? "" : "/"}${image}`;
 };
 
@@ -87,7 +87,7 @@ export default function Menu() {
       const token = localStorage.getItem("token") || localStorage.getItem("access_token");
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
-      const response = await axios.get(`http://127.0.0.1:8000/api/user/auth/products/?page=${page}`, {
+      const response = await axios.get(`https://pizza-mart-mu8r.onrender.com/api/user/auth/products/?page=${page}`, {
         headers,
       });
       

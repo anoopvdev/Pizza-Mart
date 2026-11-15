@@ -81,7 +81,7 @@ const PasswordChange = () => {
 
     try {
       const response = await axios.post(
-        "http://127.0.0.1:8000/api/user/auth/reset-password/",
+        "https://pizza-mart-mu8r.onrender.com/api/user/auth/reset-password/",
         requestData
       );
 

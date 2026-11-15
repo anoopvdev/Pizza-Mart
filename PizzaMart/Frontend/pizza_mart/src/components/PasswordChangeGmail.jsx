@@ -26,7 +26,7 @@ const PasswordChangeEmail = () => {
 
     try {
       const response = await axios.post(
-        "http://127.0.0.1:8000/api/user/auth/forgot-password/",
+        "https://pizza-mart-mu8r.onrender.com/api/user/auth/forgot-password/",
         { email: email.trim() }
       );
 

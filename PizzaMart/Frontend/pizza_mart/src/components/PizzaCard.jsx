@@ -6,7 +6,7 @@ function PizzaCard({ pizza, onAdd }) {
   const imageUrl = pizza.image
     ? pizza.image.startsWith("http")
       ? pizza.image
-      : `http://127.0.0.1:8000${pizza.image}`
+      : `https://pizza-mart-mu8r.onrender.com${pizza.image}`
     : "/default-pizza.png";
 
   const categoryName =

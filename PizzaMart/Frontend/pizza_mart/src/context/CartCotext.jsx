@@ -11,7 +11,7 @@ import axios from "axios";
 
 const CartContext = createContext();
 
-const API = "http://127.0.0.1:8000/api/user/auth/cart/";
+const API = "https://pizza-mart-mu8r.onrender.com/api/user/auth/cart/";
 
 export function CartProvider({ children }) {
   const [loading, setLoading] = useState(false);
