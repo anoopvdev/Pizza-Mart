@@ -34,22 +34,7 @@ const Admin = () => {
       localStorage.setItem("adminRefresh",response.data.refresh)
 
       
-      // const accessToken = response.data.access;
-      // const refreshToken = response.data.refresh;
 
-      // if (!accessToken) {
-      //   throw new Error("Access token not received from server");
-      // }
-
-  
-      // localStorage.setItem("adminAccess", accessToken);
-
-      // if (refreshToken) {
-      //   localStorage.setItem("adminRefresh", refreshToken);
-      // }
-      // console.log(localStorage.getItem("adminAccess"));
-     
-      // console.log("Refresh token",refreshToken)
    
       navigate('/admin/dashboard');
 

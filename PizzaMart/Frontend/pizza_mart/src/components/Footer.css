@@ -1,0 +1,123 @@
+
+.pizzamart-footer {
+  background: #171717;
+  color: #ffffff;
+  padding: 55px 0 15px;
+  margin-top: 50px;
+}
+
+.footer-logo {
+  color: #ff5722;
+  font-size: 28px;
+  font-weight: 800;
+  margin-bottom: 18px;
+}
+
+.footer-logo span {
+  color: #ffffff;
+}
+
+.footer-description {
+  color: #bdbdbd;
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.pizzamart-footer h5 {
+  color: #ff5722;
+  font-weight: 700;
+  margin-bottom: 22px;
+}
+
+.pizzamart-footer p {
+  color: #bdbdbd;
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.pizzamart-footer p svg {
+  color: #ff5722;
+  margin-right: 8px;
+}
+
+.footer-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-links li {
+  margin-bottom: 12px;
+}
+
+.footer-links a {
+  color: #bdbdbd;
+  text-decoration: none;
+  font-size: 14px;
+  transition: 0.3s;
+}
+
+.footer-links a:hover {
+  color: #ff5722;
+  padding-left: 5px;
+}
+
+.footer-social {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.footer-social a {
+  width: 38px;
+  height: 38px;
+  background: #292929;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  text-decoration: none;
+  transition: 0.3s;
+}
+
+.footer-social a:hover {
+  background: #ff5722;
+  transform: translateY(-4px);
+}
+
+.footer-time {
+  display: inline-block;
+  margin-left: 25px;
+  color: #ffffff;
+}
+
+.footer-divider {
+  border-color: #555;
+  margin-top: 35px;
+}
+
+.footer-bottom {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-top: 12px;
+}
+
+.footer-bottom p {
+  margin: 0;
+  font-size: 13px;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .pizzamart-footer {
+    padding: 40px 0 15px;
+  }
+
+  .footer-bottom {
+    flex-direction: column;
+    text-align: center;
+  }
+}

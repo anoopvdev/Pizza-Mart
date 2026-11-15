@@ -22,7 +22,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-# SECRET_KEY = 'django-insecure-16&*yx!72z!m41_f#sh8cf^7if-1bq0wsb3ou4j(l90eo9_lkd'
+
 
 # BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -109,8 +109,13 @@ DATABASES = {
         "NAME": os.getenv("DB_NAME"),
         "USER": os.getenv("DB_USER"),
         "PASSWORD": os.getenv("DB_PASSWORD"),
-        "HOST":  os.getenv("DB_HOST", "127.0.0.1"),
+        "HOST": os.getenv("DB_HOST"),
         "PORT": os.getenv("DB_PORT", "3306"),
+        "OPTIONS": {
+            "ssl": {
+                "check_hostname": True,
+            },
+        },
     }
 }
 
@@ -170,10 +175,6 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 
 
-# BASE_DIR = Path(__file__).resolve().parent.parent
-
-# load_dotenv(BASE_DIR / ".env")
-
 PIZZAMART_ADMIN_EMAIL = os.getenv("PIZZAMART_ADMIN_EMAIL")
 PIZZAMART_ADMIN_PASSWORD = os.getenv("PIZZAMART_ADMIN_PASSWORD")
 
@@ -192,3 +193,11 @@ SIMPLE_JWT = {
 
 RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID")
 RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
+
+
+
+
+
+
+
+

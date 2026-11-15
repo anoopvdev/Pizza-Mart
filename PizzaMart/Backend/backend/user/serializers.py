@@ -261,10 +261,31 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
         return instance
 
-# class ContactMessageSerializer(serializers.Serializer):
-#     name = serializers.CharField(max_length=100)
-#     email = serializers.EmailField(max_length=254)
-#     phone = serializers.CharField(max_length=20,req)
+class ContactSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ContactMessage
+        fields = [
+            "id",
+            "user",
+            "name",
+            "email",
+            "phone",
+            "subject",
+            "message",
+            "is_read",
+            "created_at"
+        ]
+        read_only_fields = ["id","is_read","created_at"]
+    def validate_name(self,value):
+        if len(value.strip()) < 3 :
+            raise serializers.ValidationError("Name must be at least 3 characters.")
+        return value.strip()
+
+    def validate_message(self,value):
+        if len(value.strip()) < 10 :
+            raise serializers.ValidationError("Message must contain at least 10 characters.")
+        return value.strip()
+    
 
 
 #  Cart Serializer

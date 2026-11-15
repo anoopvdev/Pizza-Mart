@@ -1,82 +1,202 @@
-import axios from 'axios'
-import React, { useState } from 'react'
 
+import React, { useState } from "react";
+import axios from "axios";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const PasswordChange = () => {
- const[newPassword,setnewPassword] = useState("")
- const[confirm_password,setConfirmPassword] = useState("")
- const[error,setError]=useState("")
- const[loading,setLoading] = useState(false)
- const[success,setSuccess] = useState(false)
- const[message,setMessage] = useState("")
- const validatePassword =()=>{
-    const newErrors ={}
-    if(!newPassword.trim()){
-        newErrors.newPassword = "Password is required"
-    }else if(newPassword.length<8){
-        newErrors.newPassword = "Password must be at least 8 character"
-    }else if(!/[A-Z]/.test(newPassword)){
-      newErrors.password = "Add at least one UpperCase letter"
-    }else if(!/[a-z]/.test(newPassword)){
-      newErrors.password = "Add at least one LowerCase letter"
-    }else if(!/\d/.test(newPassword)){
-      newErrors.password = "Add at least one number"
-    }else if(!/[^A-Za-z0-9]/.test(newPassword)){
-      newErrors.password = "Add at least one special character"
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const [newPassword, setNewPassword] = useState("");
+  const [confirm_password, setConfirmPassword] = useState("");
+
+  const [error, setError] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [message, setMessage] = useState("");
+
+  const email = location.state?.email || "";
+  const reset_token = location.state?.reset_token || "";
+
+  const validatePassword = () => {
+    const newErrors = {};
+
+    if (!newPassword.trim()) {
+      newErrors.newPassword = "Password is required";
+    } else if (newPassword.length < 8) {
+      newErrors.newPassword = "Password must be at least 8 characters";
+    } else if (!/[A-Z]/.test(newPassword)) {
+      newErrors.newPassword = "Add at least one uppercase letter";
+    } else if (!/[a-z]/.test(newPassword)) {
+      newErrors.newPassword = "Add at least one lowercase letter";
+    } else if (!/\d/.test(newPassword)) {
+      newErrors.newPassword = "Add at least one number";
+    } else if (!/[^A-Za-z0-9]/.test(newPassword)) {
+      newErrors.newPassword = "Add at least one special character";
     }
-    if(!confirm_password){
-        newErrors.confirm_password = "Confrim Your Password"
-    }else if(newPassword != confirm_password){
-        newErrors.confirm_password = "Password do not Match."
+
+    if (!confirm_password) {
+      newErrors.confirm_password = "Please confirm your password";
+    } else if (newPassword !== confirm_password) {
+      newErrors.confirm_password = "Passwords do not match";
     }
+
     setError(newErrors);
-    return Object.keys(newErrors).length ===0
- }
-const handleSubmit = async (ev) =>{
-    ev.preventDefault()
-    setLoading(true)
-    setSuccess(false)
-    try{
-        const response = await axios.post("http://127.0.0.1:8000/api/user/auth/reset-password/",{newPassword:newPassword,confirm_password:confirm_password},)
-        setMessage(response.data.message || "Password Change Successfully")
-        setError("")
-        setSuccess(true)
-        setLoading(true)
-    }catch(error){
-        setMessage(error.response?.data?.error || "Change password faild")
-        setLoading(false)
+
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (ev) => {
+    ev.preventDefault();
+
+    setMessage("");
+    setError({});
+    setSuccess(false);
+
+    if (!email || !reset_token) {
+      setMessage("Email or reset token is missing. Please verify OTP again.");
+      return;
     }
- }
+
+    if (!validatePassword()) {
+      return;
+    }
+
+    setLoading(true);
+
+    // IMPORTANT: Backend field names must match exactly.
+    const requestData = {
+      email: email,
+      reset_token: reset_token,
+      new_password: newPassword,
+      confirm_password: confirm_password,
+    };
+
+    console.log("RESET REQUEST DATA:", {
+      email: email,
+      reset_token: reset_token ? "Present" : "Missing",
+      new_password: newPassword ? "Present" : "Missing",
+      confirm_password: confirm_password ? "Present" : "Missing",
+    });
+
+    try {
+      const response = await axios.post(
+        "http://127.0.0.1:8000/api/user/auth/reset-password/",
+        requestData
+      );
+
+      setMessage(
+        response.data.message || "Password changed successfully"
+      );
+
+      setSuccess(true);
+      setNewPassword("");
+      setConfirmPassword("");
+
+      setTimeout(() => {
+        navigate("/login");
+      }, 2000);
+
+    } catch (err) {
+      console.log("RESET API ERROR:", err.response?.data);
+
+      const data = err.response?.data;
+
+      if (data?.new_password) {
+        setError({ newPassword: data.new_password.join(" ") });
+      } else if (data?.confirm_password) {
+        setError({
+          confirm_password: data.confirm_password.join(" "),
+        });
+      } else {
+        setMessage(
+          data?.error ||
+          data?.detail ||
+          "Password change failed. Please try again."
+        );
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <>
-      <div className='Password-background  ' >
-        <div className='card passsword-card shadow-lg p-3 bg-dark bg-opacity-75 text-white rounded '>
-            <h2 className=''>Create a New Password</h2>
-            <strong className='text-center mb-3'>Rember the password</strong>
-            <form onSubmit={handleSubmit} >
-                <div className='mb-3'>
-                <label className='form-label m-1'>New Password</label>
-                <input type="password" className='form-control' value={newPassword} onChange={(ev)=>setnewPassword(ev.target.value)} placeholder='Enter a strong password' />
-                {error.newPassword && (
-                    <p className='text-danger'>{error.newPassword}</p>
-                )}
+      <div className="Password-background">
+        <div className="card passsword-card shadow-lg p-3 bg-dark bg-opacity-75 text-white rounded">
 
-                </div>
-                <div className='mb-3'>
-                    <label className='form-label '>Confirm Password</label>
-                    <input type="password" className='form-control ' value={confirm_password} onChange={(ev)=>setConfirmPassword(ev.target.value)} placeholder='Re-Enter the password' />
-                    {error.confirm_password && (
-                        <p className='text-danger'>{error.confirm_password}</p>
-                    )}
-                </div>
-                <button type='submit' onClick={validatePassword} className='btn btn-danger w-100 d-flex justify-content-center mb-3'>Update Password</button>
-            </form>
+          <h2>Create a New Password</h2>
 
+          <strong className="text-center mb-3">
+            Remember your password
+          </strong>
+
+          <form onSubmit={handleSubmit}>
+
+            <div className="mb-3">
+              <label className="form-label m-1">
+                New Password
+              </label>
+
+              <input
+                type="password"
+                className="form-control"
+                value={newPassword}
+                onChange={(ev) => setNewPassword(ev.target.value)}
+                placeholder="Enter a strong password"
+              />
+
+              {error.newPassword && (
+                <p className="text-danger">
+                  {error.newPassword}
+                </p>
+              )}
+            </div>
+
+            <div className="mb-3">
+              <label className="form-label">
+                Confirm Password
+              </label>
+
+              <input
+                type="password"
+                className="form-control"
+                value={confirm_password}
+                onChange={(ev) => setConfirmPassword(ev.target.value)}
+                placeholder="Re-enter the password"
+              />
+
+              {error.confirm_password && (
+                <p className="text-danger">
+                  {error.confirm_password}
+                </p>
+              )}
+            </div>
+
+            {message && (
+              <div
+                className={`alert ${
+                  success ? "alert-success" : "alert-danger"
+                }`}
+                role="alert"
+              >
+                {message}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              className="btn btn-danger w-100 d-flex justify-content-center mb-3"
+              disabled={loading}
+            >
+              {loading ? "Updating..." : "Update Password"}
+            </button>
+
+          </form>
         </div>
-
       </div>
     </>
-  )
-}
+  );
+};
 
-export default PasswordChange
+export default PasswordChange;

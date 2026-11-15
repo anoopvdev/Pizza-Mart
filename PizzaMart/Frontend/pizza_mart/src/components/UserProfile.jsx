@@ -260,7 +260,12 @@ const updatedProfile = {
   };
 
   if (loading) {
-    return <p className="text-center mt-5">Loading profile....</p>;
+    return (
+      <div className="text-center mt-5 py-5">
+        <div className="spinner-border text-danger" role="status"></div>
+        <p className="mt-3">Loading profile...</p>
+      </div>
+    );
   }
 
   return (
@@ -337,7 +342,7 @@ const updatedProfile = {
                 <Link to="/my-address">
                   <i className="bi bi-geo-alt"></i> Address Book
                 </Link>
-                <Link to="/change-password">
+                <Link to="/email-change-password">
                   <i className="bi bi-lock"></i> Change Password
                 </Link>
                 <Link to="/logout">

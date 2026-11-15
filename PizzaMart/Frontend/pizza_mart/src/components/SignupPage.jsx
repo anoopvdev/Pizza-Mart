@@ -2,8 +2,10 @@
 import { useState } from "react";
 import axios from 'axios'
 import { GoogleLogin } from "@react-oauth/google";
-import { replace, useNavigate, } from "react-router-dom";
+import { replace, useLocation, useNavigate, } from "react-router-dom";
 import { Link } from "react-router-dom";
+import { faSpinner } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
   const  Signup =() => {
   const[username,setUserName] = useState('')
   const[email,setEmail] = useState('')
@@ -14,11 +16,21 @@ import { Link } from "react-router-dom";
   const[loading,setLoading] = useState(false)
   const[succes,setSuccess] = useState(false)
   const[message,setMessage] = useState("")
+
+  
   const[showOTP,setShowOTP] = useState(false)
   const[otp,setOTP] = useState("")
   const[showPassword,setShoePassword] = useState(false)
   const handletoggle = ()=>{
     setShoePassword((prev)=>!prev)
+  }
+
+  const resendhandle = async ()=>{
+    setErrors("");
+    setLoading(true)
+    setMessage("")
+
+
   }
  
   const handleGoogleSuccess = (credentialResponse) =>{
@@ -305,7 +317,7 @@ import { Link } from "react-router-dom";
           )}
 
           {/* Signup Button */}
-          <button 
+          {/* <button 
             type="submit"
             className="btn btn-danger  w-100 d-flex justify-content-center  "
             disabled={loading}
@@ -313,18 +325,26 @@ import { Link } from "react-router-dom";
            
           >
             {loading ? "Please wait":"Sign Up"}
-          </button>
+          </button> */}
+
+
+          {loading ?(
+              <button type='submit'className='btn btn-danger w-100 ' disabled ><FontAwesomeIcon icon={faSpinner} spin /> Login...</button>
+            ):(
+                 <button type='submit'className='btn btn-danger w-100 ' >Sign Up</button>
+            ) }
 
         </form>
         ):(
           <form onSubmit={verifyOTP} className="mt-4">
-            <h4>Verify Your Email</h4>
-            <p>Enter the 6-digit OTP sent to {email}</p>
+            <h4 className="d-flex justify-content-center">Verify Your Email</h4>
+            <p className="d-flex justify-content-center">Enter the 6-digit OTP sent to {email}</p>
+            {/* <Link className="text-decoration-none text-danger d-flex justify-content-end mb-2" onClick={resendhandle}>Resend otp</Link> */}
             <input className="form-control mb-3" value={otp} onChange={(ev)=>setOTP(ev.target.value)} placeholder="Enter OTP" maxLength={6} inputMode="numeric" pattern="[0-9]{6}" />
             <button className="btn btn-success d-flex mx-auto" type="submit" > Verify OTP</button>
           </form>
         )}
-        <div className="text-center m-3">OR</div>
+        <div className="text-center m-3">OR</div> 
         <div className="d-flex justify-content-center">
           <GoogleLogin 
           onSuccess={handleGoogleSuccess}
@@ -333,7 +353,7 @@ import { Link } from "react-router-dom";
           shape="rectangular" />
         
         </div>
-        <p className="text-center mt-3 ">
+         <p className="text-center mt-3 ">
           Already have an account?{" "}
           <Link to="/login" className="text-danger text-decoration-none" >
             Login

@@ -46,8 +46,9 @@ const MyOrders = () => {
 
   if (loading) {
     return (
-      <div className="container py-5 text-center">
-        Loading orders...
+      <div className="text-center mt-5 py-5">
+        <div className="spinner-border text-danger" role="status"></div>
+        <p className="mt-3">Loading My Order...</p>
       </div>
     );
   }

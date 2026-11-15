@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useState } from "react";
 import "./About.css";
 import Navbar from "./Navbar";
+import Footer from "./Footer";
 
 
 const About = () => {
@@ -232,32 +233,7 @@ const About = () => {
       </section>
 
       {/* Footer */}
-      <footer className="about-footer">
-        <div className="container">
-          <div className="row align-items-center g-3">
-            <div className="col-md-6">
-              <Link to="/home" className="footer-brand">
-                🍕 PizzaMart
-              </Link>
-              <p className="mb-0">
-                Good pizza. Great moments.
-              </p>
-            </div>
-
-            <div className="col-md-6 text-md-end">
-              <Link to="/home">Home</Link>
-              <Link to="/menu">Menu</Link>
-              <Link to="/contact">Contact</Link>
-            </div>
-          </div>
-
-          <hr />
-
-          <p className="footer-copy mb-0 text-center">
-            © {new Date().getFullYear()} PizzaMart. All rights reserved.
-          </p>
-        </div>
-      </footer>
+      <Footer />
     </div>
     </>
   );

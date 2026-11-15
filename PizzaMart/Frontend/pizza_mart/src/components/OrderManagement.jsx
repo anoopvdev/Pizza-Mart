@@ -20,7 +20,7 @@ const OrderManagement = () => {
 
   const fetchOrders = async () => {
     try {
-      const response = await adminApi.get("orders/");
+      const response = await adminApi.get(`orders/`);
       setOrders(response.data.results || response.data);
       setError("");
     } catch (err) {
@@ -36,7 +36,7 @@ const OrderManagement = () => {
 
   const viewDetails = async (id) => {
     try {
-      const response = await adminApi.get(`orders/${id}/`);
+      const response = await adminApi.get(`orders/`);
       setSelectedOrder(response.data);
     } catch (err) {
       alert(err.response?.data?.detail || "Unable to load order details.");
@@ -47,8 +47,11 @@ const OrderManagement = () => {
     try {
       const response = await adminApi.patch(
         `orders/${orderId}/status/`,
-        { status: newStatus }
+        { status: newStatus.toLowerCase() },{
+
+        }
       );
+      console.log("STATUS UPADTEED:",response.data)
 
       setOrders((old) =>
         old.map((order) =>
@@ -64,7 +67,13 @@ const OrderManagement = () => {
           : old
       );
     } catch (err) {
-      alert(err.response?.data?.detail || "Unable to update order status.");
+     console.log("STATUS ERROR:", err.response?.data);
+
+    setError(
+      err.response?.data?.error ||
+      err.response?.data?.detail ||
+      "Unable to update order status."
+    );
     }
   };
 
@@ -74,7 +83,14 @@ const OrderManagement = () => {
       .includes(search.toLowerCase())
   );
 
-  if (loading) return <p>Loading orders...</p>;
+ if (loading) {
+    return (
+      <div className="text-center py-5">
+        <div className="spinner-border text-danger" />
+        <p className="text-muted mt-3">Loading orders...</p>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -149,6 +165,7 @@ const OrderManagement = () => {
                 )}
               </tbody>
             </table>
+
           </div>
         </div>
       </div>

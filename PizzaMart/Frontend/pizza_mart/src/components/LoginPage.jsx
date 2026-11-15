@@ -5,8 +5,8 @@ import { GoogleLogin } from "@react-oauth/google";
 import { Link } from "react-router-dom";
 import ForgottPassword from '../components/ForgottPassword';
 import { useCart } from '../context/CartCotext';
-
-
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import {faSpinner} from '@fortawesome/free-solid-svg-icons'
 const LoginPage = () => {
     const navigate = useNavigate()
     const[username,setUsername] = useState('')
@@ -23,35 +23,7 @@ const LoginPage = () => {
       console.log("Google login Successful")
       console.log(credentialResponse.credential)
     }
-    // const handleSubmit = async (ev) =>{
-    //   ev.preventDefault();
-    //   setError("")
-    //   setLoading(true)
 
-    //   try{
-    //     const response = await axios.post("http://127.0.0.1:8000/api/user/auth/login/",
-    //       {
-    //         username:username.trim(),
-    //         password:password
-    //       }
-    //     );
-    //     console.log(response.data)
-    //     // const accessToken = response.data.access;
-    //     // if(accessToken){
-    //     //   localStorage.setItem("accessToken",accessToken)
-    //     // }
-    //     localStorage.setItem("access",response.data.access)
-    //     localStorage.setItem("refresh",response.data.refresh)
-    //     navigate("/home")
-        
-    //   }catch(error){
-    //     const message = error.response?.data?.error
-    //     setError(message || "Login failed")
-    //   }finally{
-    //     setLoading(false)
-    //   }
-    
-    // }
     const handleSubmit = async (ev) => {
   ev.preventDefault();
   setError("");
@@ -129,10 +101,14 @@ const LoginPage = () => {
                   <p className='alert alert-danger' role='alert'>{error}</p>
                 )}
                 
-                <div className='d-flex justify-content-center'>
-                    <button type='submit' className='btn btn-danger w-100'> Login </button>
-                    
-                </div>
+
+                  {loading ?(
+              <button type='submit'className='btn btn-danger w-100 ' disabled ><FontAwesomeIcon icon={faSpinner} spin /> Login...</button>
+            ):(
+                 <button type='submit'className='btn btn-danger w-100 ' >Login</button>
+            ) }
+
+
                 
                 <div className="text-center m-3">OR</div>
                 <div className="d-flex justify-content-center ">

@@ -268,7 +268,9 @@
 }
 
 .food-type {
-  width: 160px;
+  width: 70px;
+  
+  margin-left: 180px;
   font-size: 10px;
   font-weight: 800;
   border: 1px solid;

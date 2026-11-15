@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useCart } from "../context/CartCotext";
@@ -17,15 +17,40 @@ const Checkout = () => {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [addresses,setAddresses] = useState([])
+  const [selectAddress , setSelectAddress] = useState("")
 
-  const [formData, setFormData] = useState({
-    delivery_name: "",
-    phone: "",
-    address: "",
-    city: "",
-    state: "",
-    pincode: "",
-  });
+  const token = localStorage.getItem("access");
+  
+  useEffect(()=>{
+    fetchAddresses()
+  },[])
+
+  const fetchAddresses = async () =>{
+    try{
+      const response = await axios.get(`${API}addresses/`,{
+          headers : {
+            Authorization : `Bearer ${token}`,
+          },
+      });
+
+      const Data = Array.isArray(response.data) ? response.data : response.data.results || [];
+      setAddresses(Data)
+      const defaultAddress = data.find((item)=>item.is_default === true);
+      if(defaultAddress){
+        setSelectAddress(String(defaultAddress.id));
+      }else if(response.data.length > 0){
+        setSelectAddress(String(response.data[0].id))
+      }else{
+        setAddresses("")
+      }
+    }catch (error){
+      console.log("ADDRESS ERROR:", error.response?.data)
+      setError("Unable to load saved addresses.");
+    }
+    
+  }
+
 
   const [paymentMethod, setPaymentMethod] = useState("razorpay");
 
@@ -33,14 +58,7 @@ const Checkout = () => {
     Authorization: `Bearer ${localStorage.getItem("access")}`,
   });
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
 
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
 
   const loadRazorpay = () => {
     return new Promise((resolve) => {
@@ -63,13 +81,22 @@ const Checkout = () => {
 
   const handleCheckout = async (e) => {
 
-    e.preventDefault();
-
+    if (e) e.preventDefault()
     setError("");
 
     if (!cartItems.length) {
       setError("Your cart is empty");
       return;
+    }
+
+    if (!selectAddress){
+      setError("Please select a delivery address.")
+      return;
+    }
+
+    const sellectAddressesData = addresses.find((item)=>String(item.id) === String(selectAddress));
+    if (!sellectAddressesData){
+      setError("Selected address not found. Please select again.");
     }
 
     try {
@@ -80,8 +107,8 @@ const Checkout = () => {
       const response = await axios.post(
         `${API}orders/checkout/`,
         {
-          ...formData,
-          payment_method: paymentMethod,
+          address_id: selectAddress,
+          payment_method: paymentMethod
         },
         {
           headers: getHeaders(),
@@ -110,23 +137,25 @@ const Checkout = () => {
       }
 
       // 4. Open Razorpay payment window
+      const razorpayData = response.data.razorpay;
       const options = {
 
-        key: data.razorpay.key,
+        key: razorpayData.key,
 
-        amount: data.razorpay.amount,
 
-        currency: data.razorpay.currency,
+        amount: razorpayData.amount,
+
+        currency: razorpayData.currency,
 
         name: "PizzaMart",
 
         description: "Pizza Order Payment",
 
-        order_id: data.razorpay.razorpay_order_id,
+        order_id: razorpayData.razorpay_order_id,
 
         prefill: {
-          name: formData.delivery_name,
-          contact: formData.phone,
+          name: sellectAddressesData.full_name,
+          contact: sellectAddressesData.phone,
         },
 
         theme: {
@@ -155,6 +184,7 @@ const Checkout = () => {
                 headers: getHeaders(),
               }
             );
+            
 
             if (verifyResponse.data.order.payment_status !== "paid") {
               setError("Payment is not confirmed yet. Please check your order status.");
@@ -247,117 +277,59 @@ const Checkout = () => {
               Delivery Details
             </h4>
 
-            <form onSubmit={handleCheckout}>
 
-              <div className="mb-3">
 
-                <label className="form-label">
-                  Full Name
-                </label>
+          <div className="card p-3 mb-4">
+  <h5>Delivery Address</h5>
 
-                <input
-                  type="text"
-                  name="delivery_name"
-                  className="form-control"
-                  value={formData.delivery_name}
-                  onChange={handleChange}
-                  required
-                />
+  {addresses.length === 0 ? (
+    <div>
+      <p>Please add a delivery address in your profile.</p>
 
-              </div>
+      <button
+        className="btn btn-primary"
+        onClick={() => navigate("/my-address")}
+      >
+        Add Address
+      </button>
+    </div>
+  ) : (
+    addresses.map((item) => (
+      <div className="form-check border rounded p-3 mb-2" key={item.id}>
+        <input
+          className="form-check-input"
+          type="radio"
+          name="deliveryAddress"
+          value={item.id}
+          checked={selectAddress === String(item.id)}
+          onChange={() =>
+            setSelectAddress(String(item.id))
+          }
+        />
 
-              <div className="mb-3">
+        <label className="form-check-label ms-2">
+          <strong>{item.full_name}</strong>
 
-                <label className="form-label">
-                  Phone Number
-                </label>
+          {item.is_default && (
+            <span className="badge bg-success ms-2">
+              Default
+            </span>
+          )}
 
-                <input
-                  type="tel"
-                  name="phone"
-                  className="form-control"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  maxLength="15"
-                  required
-                />
+          <p className="mb-1">{item.phone}</p>
+          <p className="mb-1">{item.address_line}</p>
+          <p className="mb-0">
+            {item.city}, {item.state} - {item.pincode}
+          </p>
+        </label>
+      </div>
+    ))
+  )}
+</div>
 
-              </div>
 
-              <div className="mb-3">
 
-                <label className="form-label">
-                  Delivery Address
-                </label>
-
-                <textarea
-                  name="address"
-                  className="form-control"
-                  rows="3"
-                  value={formData.address}
-                  onChange={handleChange}
-                  required
-                />
-
-              </div>
-
-              <div className="row">
-
-                <div className="col-md-6 mb-3">
-
-                  <label className="form-label">
-                    City
-                  </label>
-
-                  <input
-                    type="text"
-                    name="city"
-                    className="form-control"
-                    value={formData.city}
-                    onChange={handleChange}
-                    required
-                  />
-
-                </div>
-
-                <div className="col-md-6 mb-3">
-
-                  <label className="form-label">
-                    State
-                  </label>
-
-                  <input
-                    type="text"
-                    name="state"
-                    className="form-control"
-                    value={formData.state}
-                    onChange={handleChange}
-                    required
-                  />
-
-                </div>
-
-              </div>
-
-              <div className="mb-4">
-
-                <label className="form-label">
-                  PIN Code
-                </label>
-
-                <input
-                  type="text"
-                  name="pincode"
-                  className="form-control"
-                  value={formData.pincode}
-                  onChange={handleChange}
-                  maxLength="6"
-                  required
-                />
-
-              </div>
-
-              <hr />
+ <hr />
 
               <h5 className="mb-3">
                 Select Payment Method
@@ -419,6 +391,7 @@ const Checkout = () => {
 
               <button
                 type="submit"
+                onClick={handleCheckout}
                 className="btn btn-danger w-100"
                 disabled={loading}
               >
@@ -432,7 +405,11 @@ const Checkout = () => {
 
               </button>
 
-            </form>
+
+
+
+
+
 
           </div>
 

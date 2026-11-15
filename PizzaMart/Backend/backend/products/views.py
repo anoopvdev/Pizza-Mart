@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
-
+from user .pagination import PizzaPagination
 
 class AdminProductViewSet(viewsets.ModelViewSet):
     queryset = Pizzas.objects.select_related("category").all().order_by("-id")
@@ -18,7 +18,15 @@ class AdminProductViewSet(viewsets.ModelViewSet):
 
     parser_classes=[MultiPartParser,FormParser,JSONParser]
 
+
+
 class AdminOrderViewSet(viewsets.ReadOnlyModelViewSet):
+
+    serializer_class = AdminOrderSerializer
+
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+
 
     queryset = (
         Order.objects
@@ -26,10 +34,6 @@ class AdminOrderViewSet(viewsets.ReadOnlyModelViewSet):
         .prefetch_related("items__pizzas")
         .order_by("-created_at")
     )
-
-    serializer_class = AdminOrderSerializer
-
-    permission_classes = [IsAuthenticated, IsAdminUser]
 
     def get_queryset(self):
 
@@ -44,7 +48,7 @@ class AdminOrderViewSet(viewsets.ReadOnlyModelViewSet):
                 status__iexact=order_status
             )
 
-        # Search by order number, customer name, username or email
+
         if search:
             queryset = queryset.filter(
                 Q(order_number__icontains=search) |
@@ -70,13 +74,8 @@ class AdminOrderViewSet(viewsets.ReadOnlyModelViewSet):
             partial=True
         )
 
-        if not serializer.is_valid(raise_exception=True):
-            return Response(
-            {"errors": serializer.errors},
-            status=status.HTTP_400_BAD_REQUEST
-        )
+        serializer.is_valid(raise_exception=True)
         serializer.save()
-        
 
         return Response({
             "message": "Order status updated successfully.",
@@ -85,6 +84,7 @@ class AdminOrderViewSet(viewsets.ReadOnlyModelViewSet):
                 context={"request": request}
             ).data
         }, status=status.HTTP_200_OK)
+
 
 
 
@@ -131,11 +131,22 @@ class AdminCategoryViewSet(viewsets.ModelViewSet):
         JSONParser
     ]
 
+
+
+
 class UserProductListView(APIView):
+
     permission_classes = [AllowAny]
     authentication_classes = []
+    def get(self, request):
+        pizzas = Pizzas.objects.filter(is_available=True).select_related("category").order_by("-created_at")
+        paginator = PizzaPagination()
+        paginated_pizzas = paginator.paginate_queryset(pizzas,request,view=self)
 
-    def get(self,request):
-        products = Pizzas.objects.filter(is_available=True).order_by("-id")
-        serializer = UserProductSerializer(products,many=True,context={"request":request})
-        return Response(serializer.data)
+        serializer = PizzaSerializer(
+            pizzas,
+            many=True,
+            context={"request": request}
+        )
+
+        return paginator.get_paginated_response(serializer.data)

@@ -3,33 +3,29 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 import "./Contact.css";
 import Navbar from "./Navbar";
-const API = "http://127.0.0.1:8000/api/user/contact/";
+import Footer from "./Footer";
+const API = "http://127.0.0.1:8000/api/user/auth/contact/";
 
-const initialForm = {
-  name: "",
-  email: "",
-  phone: "",
-  subject: "",
-  message: "",
-};
+
 
 function Contact() {
-  const [form, setForm] = useState(initialForm);
+  const [formData,setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    subject: "",
+    message: ""
+  })
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-
-    setForm((previous) => ({
-      ...previous,
-      [name]: value,
-    }));
-
-    setSuccess("");
-    setError("");
-  };
+  const handleChange = (e) =>{
+    setFormData({
+      ...formData,
+      [e.target.name] : e.target.value
+    })
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -39,14 +35,20 @@ function Contact() {
     setError("");
 
     try {
-      const response = await axios.post(API, form);
+      const response = await axios.post(API, formData);
 
       setSuccess(
         response.data.message ||
           "Your message has been sent successfully!"
       );
 
-      setForm(initialForm);
+      setFormData({
+        name : "",
+        email : "",
+        phone : "",
+        subject : "",
+        message : ""
+      })
     } catch (err) {
       const data = err.response?.data;
 
@@ -203,7 +205,7 @@ function Contact() {
                         name="name"
                         className="form-control contact-input"
                         placeholder="Enter your name"
-                        value={form.name}
+                        value={formData.name}
                         onChange={handleChange}
                         maxLength={100}
                         autoComplete="name"
@@ -221,7 +223,7 @@ function Contact() {
                         name="email"
                         className="form-control contact-input"
                         placeholder="you@example.com"
-                        value={form.email}
+                        value={formData.email}
                         onChange={handleChange}
                         maxLength={254}
                         autoComplete="email"
@@ -239,7 +241,7 @@ function Contact() {
                         name="phone"
                         className="form-control contact-input"
                         placeholder="Your phone number"
-                        value={form.phone}
+                        value={formData.phone}
                         onChange={handleChange}
                         maxLength={20}
                         autoComplete="tel"
@@ -254,7 +256,7 @@ function Contact() {
                         id="contact-subject"
                         name="subject"
                         className="form-select contact-input"
-                        value={form.subject}
+                        value={formData.subject}
                         onChange={handleChange}
                         required
                       >
@@ -277,14 +279,14 @@ function Contact() {
                         className="form-control contact-input"
                         rows="5"
                         placeholder="How can we help you?"
-                        value={form.message}
+                        value={formData.message}
                         onChange={handleChange}
                         minLength={10}
                         maxLength={5000}
                         required
                       ></textarea>
                       <small className="text-muted">
-                        {form.message.length}/5000 characters
+                        {formData.message.length}/5000 characters
                       </small>
                     </div>
 
@@ -336,18 +338,7 @@ function Contact() {
       </section>
 
       {/* Footer */}
-      <footer className="contact-footer">
-        <div className="container d-flex flex-column flex-md-row
-                        justify-content-between align-items-center gap-3">
-          <Link className="footer-contact-brand" to="/home">
-            🍕 PizzaMart
-          </Link>
-          <p className="mb-0">
-            © {new Date().getFullYear()} PizzaMart. All rights reserved.
-          </p>
-          <Link to="/about">About Us</Link>
-        </div>
-      </footer>
+      <Footer />
     </div>
     </>
   );

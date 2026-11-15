@@ -21,6 +21,7 @@ const AdminLayout = () => {
     { path: "/admin/categorys", name: "Category", icon: "bi-list" },
     { path: "/admin/users", name: "Customers", icon: "bi-people" },
     { path: "/admin/coupons", name: "Coupons", icon: "bi-ticket-perforated" },
+    { path: "/admin/contact-message" , name: "Messages", icon: "bi bi-chat-text" }
   ];
 
   return (

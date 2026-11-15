@@ -10,5 +10,8 @@ urlpatterns = [
     path('users/<int:pk>/',AdminUserDetailView.as_view(),name='admin-user-detail'),
     path('token/refresh/',TokenRefreshView.as_view(),name='taken-refresh'),
     path('dashboard/',AdminDashboardView.as_view(),name="admin-dashboard"),
+    path('contact-message/',AdminContactMessageView.as_view(),name='admin-contact-message'),
+    path('contact-message/<int:pk>/',AdminContactEnquiryDetailsView.as_view(),name='admin-contact-detail')
+    
 
 ]

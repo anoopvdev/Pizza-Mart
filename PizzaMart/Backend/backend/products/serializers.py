@@ -64,4 +64,16 @@ class UserProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Pizzas
         fields = '__all__'
-        
+
+
+
+class PizzaSerializer(serializers.ModelSerializer):
+
+    category_name = serializers.CharField(
+        source="category.name",
+        read_only=True
+    )
+
+    class Meta:
+        model = Pizzas
+        fields = "__all__"

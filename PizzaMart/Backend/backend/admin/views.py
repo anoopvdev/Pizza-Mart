@@ -11,11 +11,13 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from  rest_framework_simplejwt.tokens import RefreshToken,AccessToken
 from datetime import timedelta
 from user.models import Pizzas,Category,Order,OrderItems
-from django.db.models import Sum,Count
+from django.db.models import Sum,Count,Max
 from django.db.models.functions import TruncDate
 import secrets
 from rest_framework import viewsets
+from user .serializers import ContactSerializer
 from datetime import datetime
+from django.shortcuts import get_object_or_404
 User = get_user_model()
 class AdminLoginView(APIView):
     authentication_classes = []
@@ -135,6 +137,23 @@ class AdminUserDetailView(APIView):
 #  Admin DashBoard
 
 
+
+def format_status(value):
+    return (value or "").replace("_", " ").title()
+
+
+def build_media_url(request, path):
+    if not path:
+        return None
+    path = str(path)
+    if path.startswith(("http://", "https://")):
+        return path
+    media_url = settings.MEDIA_URL or "/media/"
+    if not media_url.endswith("/"):
+        media_url += "/"
+    return request.build_absolute_uri(f"{media_url}{path.lstrip('/')}")
+
+
 class AdminDashboardView(APIView):
 
     def get(self, request):
@@ -162,20 +181,19 @@ class AdminDashboardView(APIView):
             .exclude(status__iexact="cancelled")
             .aggregate(total=Sum("total_amount"))
         )
-
         total_revenue = revenue["total"] or 0
 
-        total_customer = User.objects.filter(
+        total_customers = User.objects.filter(
             is_staff=False,
             is_superuser=False
         ).count()
 
-        pending_order = Order.objects.filter(
+        pending_orders = Order.objects.filter(
             status__iexact="pending"
         ).count()
 
         # 2. Sales overview
-        sale_queryset = (
+        sales_queryset = (
             Order.objects
             .filter(created_at__gte=start_datetime)
             .exclude(status__iexact="cancelled")
@@ -185,12 +203,12 @@ class AdminDashboardView(APIView):
             .order_by("sale_date")
         )
 
-        sale_overview = [
+        sales_overview = [
             {
                 "date": item["sale_date"].isoformat(),
                 "sales": float(item["sales"] or 0)
             }
-            for item in sale_queryset
+            for item in sales_queryset
         ]
 
         # 3. Order status
@@ -203,74 +221,64 @@ class AdminDashboardView(APIView):
 
         order_status = [
             {
-                "status": item["status"].replace("_", " ").title(),
+                "status": format_status(item["status"]),
                 "count": item["count"]
             }
             for item in status_queryset
         ]
 
-        # 4. Popular pizzas
+        # 4. Popular pizzas (grouped by pizza only, not by price)
         popular_queryset = (
             OrderItems.objects
+
             .filter(pizzas__isnull=False)
             .exclude(order__status__iexact="cancelled")
             .values(
                 "pizzas_id",
-                "pizza_name",
-                "unit_price",
-                "pizzas__image"
-            )
-            .annotate(order=Sum("quantity"))
-            .order_by("-order")[:5]
+            "pizza_name",
+            "pizzas__image"
         )
+        .annotate(
+        total_orders=Sum("quantity"),
+        latest_price=Max("unit_price"),   # capital M
+    )
+    .order_by("-total_orders")[:5]
+)
 
-        popular_pizzas = []
-
-        for item in popular_queryset:
-
-            image_url = item["pizzas__image"]
-
-            if image_url:
-                try:
-                    image_url = request.build_absolute_uri(
-                        f"/media/{image_url}"
-                    )
-                except (AttributeError, ValueError):
-                    image_url = None
-
-            popular_pizzas.append({
+        popular_pizzas = [
+            {
                 "id": item["pizzas_id"],
                 "name": item["pizza_name"],
-                "order": item["order"] or 0,
-                "price": float(item["unit_price"] or 0),
-                "image": image_url
-            })
+                "orders": item["total_orders"] or 0,      # frontend reads pizza.orders
+                "price": float(item["latest_price"] or 0),
+                "image": build_media_url(request, item["pizzas__image"]),
+            }
+            for item in popular_queryset
+        ]
 
-        # 5. Recent orders
-        recent_queryset = (
+        # 5. Recent orders (single query for item counts)
+        recent_queryset = list(
             Order.objects
             .select_related("user")
+            .annotate(items_total=Sum("items__quantity"))
             .order_by("-created_at")[:5]
         )
 
         recent_orders = []
 
         for order in recent_queryset:
-
-            items_count = (
-                OrderItems.objects
-                .filter(order=order)
-                .aggregate(total=Sum("quantity"))["total"] or 0
-            )
+            user = order.user
+            if user:
+                customer_name = user.get_full_name() or user.get_username()
+            else:
+                customer_name = "Guest"
 
             recent_orders.append({
                 "id": order.pk,
-                "customer_name": (
-                    order.user.get_full_name() or order.user.username
-                ),
-                "items_count": items_count,
+                "customer_name": customer_name,
+                "items_count": order.items_total or 0,
                 "total_amount": float(order.total_amount or 0),
-                "status": order.status.replace("_", " ").title()
+                "status": format_status(order.status),
             })
 
         # 6. Top categories
@@ -285,21 +293,21 @@ class AdminDashboardView(APIView):
                 "pizzas__category_id",
                 "pizzas__category__name"
             )
-            .annotate(order=Sum("quantity"))
-            .order_by("-order")
+            .annotate(total_orders=Sum("quantity"))
+            .order_by("-total_orders")[:5]
+        )
+
+        category_list = list(category_queryset)
+
+        max_category_order = max(
+            [item["total_orders"] or 0 for item in category_list],
+            default=0
         )
 
         top_categories = []
 
-        max_category_order = max(
-            [item["order"] or 0 for item in category_queryset],
-            default=0
-        )
-
-        for item in category_queryset[:5]:
-
-            count = item["order"] or 0
-
+        for item in category_list:
+            count = item["total_orders"] or 0
             percentage = (
                 round((count / max_category_order) * 100)
                 if max_category_order else 0
@@ -313,33 +321,327 @@ class AdminDashboardView(APIView):
             })
 
         # 7. Website activity
-        website_activity = []
-
-        for order in recent_queryset:
-
-            website_activity.append({
+        website_activity = [
+            {
                 "id": order.pk,
                 "message": f"New order #{order.pk} received",
-                "time": timezone.localtime(
-                    order.created_at
-                ).strftime("%d %b, %I:%M %p")
-            })
+                "time": timezone.localtime(order.created_at).strftime(
+                    "%d %b, %I:%M %p"
+                ),
+            }
+            for order in recent_queryset
+        ]
 
-        # 8. Response
+        # 8. Response (keys now match the React dashboard)
         return Response({
             "total_orders": total_orders,
             "total_revenue": float(total_revenue),
-            "total_customer": total_customer,
-            "pending_order": pending_order,
-            "sale_overview": sale_overview,
+            "total_customers": total_customers,
+            "pending_orders": pending_orders,
+            "sales_overview": sales_overview,
             "order_status": order_status,
             "popular_pizzas": popular_pizzas,
             "recent_orders": recent_orders,
             "top_categories": top_categories,
-            "website_activity": website_activity
-
+            "website_activity": website_activity,
         }, status=status.HTTP_200_OK)
 
 
+# class AdminDashboardView(APIView):
 
-    
+#     def get(self, request):
+
+#         try:
+#             days = int(request.query_params.get("days", 7))
+#         except (TypeError, ValueError):
+#             days = 7
+
+#         if days not in [7, 30, 90]:
+#             days = 7
+
+#         today = timezone.localdate()
+#         start_date = today - timedelta(days=days - 1)
+
+#         start_datetime = timezone.make_aware(
+#             datetime.combine(start_date, datetime.min.time())
+#         )
+
+#         # 1. Dashboard summary
+#         total_orders = Order.objects.count()
+
+#         revenue = (
+#             Order.objects
+#             .exclude(status__iexact="cancelled")
+#             .aggregate(total=Sum("total_amount"))
+#         )
+
+#         total_revenue = revenue["total"] or 0
+
+#         total_customer = User.objects.filter(
+#             is_staff=False,
+#             is_superuser=False
+#         ).count()
+
+#         pending_order = Order.objects.filter(
+#             status__iexact="pending"
+#         ).count()
+
+#         # 2. Sales overview
+#         sale_queryset = (
+#             Order.objects
+#             .filter(created_at__gte=start_datetime)
+#             .exclude(status__iexact="cancelled")
+#             .annotate(sale_date=TruncDate("created_at"))
+#             .values("sale_date")
+#             .annotate(sales=Sum("total_amount"))
+#             .order_by("sale_date")
+#         )
+
+#         sale_overview = [
+#             {
+#                 "date": item["sale_date"].isoformat(),
+#                 "sales": float(item["sales"] or 0)
+#             }
+#             for item in sale_queryset
+#         ]
+
+#         # 3. Order status
+#         status_queryset = (
+#             Order.objects
+#             .values("status")
+#             .annotate(count=Count("id"))
+#             .order_by("status")
+#         )
+
+#         order_status = [
+#             {
+#                 "status": item["status"].replace("_", " ").title(),
+#                 "count": item["count"]
+#             }
+#             for item in status_queryset
+#         ]
+
+#         # 4. Popular pizzas
+#         popular_queryset = (
+#             OrderItems.objects
+#             .filter(pizzas__isnull=False)
+#             .exclude(order__status__iexact="cancelled")
+#             .values(
+#                 "pizzas_id",
+#                 "pizza_name",
+#                 "unit_price",
+#                 "pizzas__image"
+#             )
+#             .annotate(order=Sum("quantity"))
+#             .order_by("-order")[:5]
+#         )
+
+#         popular_pizzas = []
+
+#         for item in popular_queryset:
+
+#             image_url = item["pizzas__image"]
+
+#             if image_url:
+#                 try:
+#                     image_url = request.build_absolute_uri(
+#                         f"/media/{image_url}"
+#                     )
+#                 except (AttributeError, ValueError):
+#                     image_url = None
+
+#             popular_pizzas.append({
+#                 "id": item["pizzas_id"],
+#                 "name": item["pizza_name"],
+#                 "order": item["order"] or 0,
+#                 "price": float(item["unit_price"] or 0),
+#                 "image": image_url
+#             })
+
+#         # 5. Recent orders
+#         recent_queryset = (
+#             Order.objects
+#             .select_related("user")
+#             .order_by("-created_at")[:5]
+#         )
+
+#         recent_orders = []
+
+#         for order in recent_queryset:
+
+#             items_count = (
+#                 OrderItems.objects
+#                 .filter(order=order)
+#                 .aggregate(total=Sum("quantity"))["total"] or 0
+#             )
+
+#             recent_orders.append({
+#                 "id": order.pk,
+#                 "customer_name": (
+#                     order.user.get_full_name() or order.user.username
+#                 ),
+#                 "items_count": items_count,
+#                 "total_amount": float(order.total_amount or 0),
+#                 "status": order.status.replace("_", " ").title()
+#             })
+
+#         # 6. Top categories
+#         category_queryset = (
+#             OrderItems.objects
+#             .filter(
+#                 pizzas__isnull=False,
+#                 pizzas__category__isnull=False
+#             )
+#             .exclude(order__status__iexact="cancelled")
+#             .values(
+#                 "pizzas__category_id",
+#                 "pizzas__category__name"
+#             )
+#             .annotate(order=Sum("quantity"))
+#             .order_by("-order")
+#         )
+
+#         top_categories = []
+
+#         max_category_order = max(
+#             [item["order"] or 0 for item in category_queryset],
+#             default=0
+#         )
+
+#         for item in category_queryset[:5]:
+
+#             count = item["order"] or 0
+
+#             percentage = (
+#                 round((count / max_category_order) * 100)
+#                 if max_category_order else 0
+#             )
+
+#             top_categories.append({
+#                 "id": item["pizzas__category_id"],
+#                 "name": item["pizzas__category__name"],
+#                 "orders": count,
+#                 "percentage": percentage
+#             })
+
+#         # 7. Website activity
+#         website_activity = []
+
+#         for order in recent_queryset:
+
+#             website_activity.append({
+#                 "id": order.pk,
+#                 "message": f"New order #{order.pk} received",
+#                 "time": timezone.localtime(
+#                     order.created_at
+#                 ).strftime("%d %b, %I:%M %p")
+#             })
+
+#         # 8. Response
+#         return Response({
+#             "total_orders": total_orders,
+#             "total_revenue": float(total_revenue),
+#             "total_customer": total_customer,
+#             "pending_order": pending_order,
+#             "sale_overview": sale_overview,
+#             "order_status": order_status,
+#             "popular_pizzas": popular_pizzas,
+#             "recent_orders": recent_orders,
+#             "top_categories": top_categories,
+#             "website_activity": website_activity
+
+#         }, status=status.HTTP_200_OK)
+
+
+class AdminOrderStatusUpdate(APIView):
+
+    permission_classes=[IsAdminUser]
+
+    def patch(self,request,pk):
+
+        print("Order status updates",request.data)
+
+        try:
+            order = Order.objects.get(id=pk)
+        except Order.DoesNotExist:
+            return Response({
+                "error":"Order not found",
+
+            },status=status.HTTP_404_NOT_FOUND)
+
+
+        new_status = request.data.get("status","").strip().lower()
+
+        allowed_status = [
+            "pending",
+            "confirmed",
+            "preparing",
+            "out_for_delivery",
+            "delivered",
+            "cancelled"
+        ]
+
+        if new_status not in allowed_status:
+            return Response({
+                "error":"Invalid order status",
+                "received_status":new_status,
+                "allowed_status":allowed_status,
+            },status=status.HTTP_400_BAD_REQUEST)
+
+        order.status = new_status
+        # order.save(update_fields=["status","updated_at"])
+        order.save()
+        return Response({
+            "message":"Order status updated",
+            "order_id": order.id,
+            "status": order.status
+        }, status=status.HTTP_200_OK)
+
+
+class AdminContactMessageView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self,request):
+
+        message = ContactMessage.objects.all().order_by("-created_at")
+
+        serializer = ContactSerializer(message,many=True)
+
+        return Response({
+            "success":True,
+            "total":message.count(),
+            "unread":message.filter(is_read=False).count(),
+            "data":serializer.data
+        },status=status.HTTP_200_OK)
+
+class AdminContactEnquiryDetailsView(APIView):
+    permission_classes=[IsAdminUser]
+
+    def get(self,request,pk):
+        message = get_object_or_404(ContactMessage,pk=pk)
+
+        serializer = ContactSerializer(message)
+
+        return Response({
+            "success" : True,
+            "data" : serializer.data
+        })
+
+    def patch(self,request,pk):
+        message = get_object_or_404(ContactMessage ,pk=pk)
+
+        message.is_read = True
+        message.save(update_fields=["is_read"])
+
+        return Response({
+            "success" : True,
+            "message" : "Enquiry marked as read."
+        })
+
+    def delete(self,request,pk):
+        message = get_object_or_404(ContactMessage,pk=pk)
+        message.delete()
+
+        return Response({
+            "message" : "Contact message deleted successfully."
+        },status=status.HTTP_200_OK)

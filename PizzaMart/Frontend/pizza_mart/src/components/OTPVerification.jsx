@@ -51,6 +51,9 @@ function VerifyResetOTP() {
         }
       );
 
+      console.log("OTP VERIFY RESPONSE:", response.data);
+console.log("RESET TOKEN:", response.data.reset_token);
+
       setMessage(response.data.message || "OTP verified successfully.")
       
 
@@ -58,7 +61,7 @@ function VerifyResetOTP() {
       navigate("/change-password", {
         state: {
           email: email,
-          resetToken: response.data.reset_token
+          reset_token: response.data.reset_token
         }
       });
     } catch (error) {

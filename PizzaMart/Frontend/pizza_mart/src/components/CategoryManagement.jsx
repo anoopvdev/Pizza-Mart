@@ -20,7 +20,8 @@ const CategoryManagement = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-
+  const [currentPage , setCurrentPage] = useState(1)
+  const itemPerPage = 8 ;
   // GET ALL CATEGORIES
   const fetchCategories = async () => {
     try {

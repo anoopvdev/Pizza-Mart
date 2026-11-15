@@ -12,8 +12,9 @@ import {
 } from "react-icons/fa";
 import Navbar from "./Navbar";
 import { useCart } from "../context/CartCotext";
-import { Link } from "react-router-dom";
+
 import axios from "axios";
+import Footer from "./Footer";
 
 // Helper to ensure image URLs point to the Django backend
 const getImageUrl = (image) => {
@@ -27,25 +28,30 @@ const getImageUrl = (image) => {
   return `${backendBase}${image.startsWith("/") ? "" : "/"}${image}`;
 };
 
-// Helper to reliably detect Veg vs Non-Veg regardless of how Django stores it
+
+
 const getNormalizedCategory = (pizza) => {
-  if (pizza.is_veg === true || pizza.is_vegetarian === true) return "Veg";
-  if (pizza.is_veg === false || pizza.is_vegetarian === false) return "Non-Veg";
-
   const rawCat =
-    typeof pizza.category === "object" && pizza.category !== null
-      ? pizza.category.name
-      : pizza.category;
+    pizza.category_name ||
+    pizza.category?.name ||
+    pizza.category;
 
-  const clean = String(rawCat || "")
-    .toLowerCase()
-    .replace(/[-_\s]/g, ""); // removes hyphens, underscores, spaces: "non-veg" -> "nonveg"
+  if (!rawCat || !isNaN(Number(rawCat))) {
+    return "Unknown";
+  }
 
-  if (clean.includes("nonveg")) return "Non-Veg";
-  if (clean.includes("veg")) return "Veg";
-  return rawCat || "Other";
+  const clean = String(rawCat).toLowerCase().replace(/[-_\s]/g, "");
+
+  if (clean.includes("nonveg") || clean.includes("nonvegetarian")) {
+    return "Non-Veg";
+  }
+
+  if (clean.includes("veg") || clean.includes("vegetarian")) {
+    return "Veg";
+  }
+
+  return String(rawCat);
 };
-
 export default function Menu() {
   const [pizzas, setPizzas] = useState([]);
   const [errors, setErrors] = useState("");
@@ -53,6 +59,9 @@ export default function Menu() {
   const [activeCategory, setActiveCategory] = useState("All");
   const [search, setSearch] = useState("");
   const [categories, setCategories] = useState(["All", "Veg", "Non-Veg"]);
+  const [currentPage,setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const itemPerPage = 8;
 
   // Cart Context
   const cartContext = useCart() || {};
@@ -70,7 +79,7 @@ export default function Menu() {
   const handleDecrease = decreaseQuantity || decreaseQuatity || (() => {});
 
   // Fetch products from Django API
-  const fetchProducts = async () => {
+  const fetchProducts = async (page = 1) => {
     try {
       setLoading(true);
       setErrors("");
@@ -78,12 +87,12 @@ export default function Menu() {
       const token = localStorage.getItem("token") || localStorage.getItem("access_token");
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
-      const response = await axios.get("http://127.0.0.1:8000/api/user/auth/products/", {
+      const response = await axios.get(`http://127.0.0.1:8000/api/user/auth/products/?page=${page}`, {
         headers,
       });
-
+      
       console.log("Backend Response:", response.data);
-
+      
       const productList =
         response.data?.results ||
         response.data?.products ||
@@ -92,6 +101,11 @@ export default function Menu() {
         (Array.isArray(response.data) ? response.data : []);
 
       setPizzas(Array.isArray(productList) ? productList : []);
+      setCurrentPage(page)
+
+      setTotalPages(Math.ceil(response.data.count / 8))
+      console.log("PIZZA RESPONSE:", response.data);
+      console.log("FIRST PIZZA:", productList[0]);          
     } catch (error) {
       console.error("Product fetch error:", error.response?.data || error.message);
       setErrors(
@@ -102,6 +116,7 @@ export default function Menu() {
     } finally {
       setLoading(false);
     }
+
   };
 
   useEffect(() => {
@@ -131,6 +146,16 @@ export default function Menu() {
 
     return matchesCategory && matchesSearch;
   });
+
+  const totalPage = Math.ceil(filteredPizzas.length / itemPerPage);
+
+  const indexOfLastPizza = currentPage * itemPerPage
+  const indexOfFirstPizza = indexOfLastPizza - itemPerPage;
+
+  const currentPizzas = filteredPizzas.slice(indexOfFirstPizza,indexOfLastPizza)
+  useEffect(()=>{
+    setCurrentPage(1);
+  },[search,activeCategory])
 
   if (loading) {
     return (
@@ -209,7 +234,7 @@ export default function Menu() {
           {/* Pizza Cards Grid */}
           <div className="row g-4">
             {filteredPizzas.length > 0 ? (
-              filteredPizzas.map((pizza) => {
+              currentPizzas.map((pizza) => {
                 const categoryLabel = getNormalizedCategory(pizza);
                 const isVeg = categoryLabel === "Veg";
                 const isNonVeg = categoryLabel === "Non-Veg";
@@ -243,13 +268,15 @@ export default function Menu() {
 
                       {/* Product Details */}
                       <div className="pizza-card-body">
-                        <div className="pizza-title-row">
+                        <div className="pizza-title-row  ">
                           <h3>{pizza.name || pizza.title}</h3>
+
+
 
                           <span
                             className={`food-type ${
                               isVeg ? "veg" : isNonVeg ? "non-veg" : ""
-                            }`}
+                            }  `}
                           >
                             {categoryLabel}
                           </span>
@@ -323,32 +350,29 @@ export default function Menu() {
             )}
           </div>
 
-          {/* Cart summary */}
-          <div className="menu-cart-summary mt-4 d-flex justify-content-between align-items-center p-3 bg-light rounded">
-            <div>
-              <strong>
-                <FaShoppingCart /> Your Cart: {cartCount} item(s)
-              </strong>
-              <p className="mb-0 text-muted">
-                Your selected pizzas are ready to order.
-              </p>
-            </div>
-            <div className="cart-summary-total fs-4 fw-bold text-danger">
-              ₹{cartTotal.toFixed(2)}
-            </div>
-          </div>
+          {
+            totalPage > 1 &&(
+              <div className="d-flex justify-content-center align-items-center gap-2 mt-4 mb-4">
+                <button className="btn btn-outline-danger" disabled={currentPage === 1} onClick={()=>setCurrentPage((prev) => prev-1)}>
+              Previous
+                </button>
+
+                {Array.from({length : totalPage },(_,index)=>(
+                  <button key={index} className={`btn ${currentPage === index + 1 ? "btn-danger" : "btn-outline-danger" }`} onClick={() => setCurrentPage(index + 1)}  > {index + 1}     </button>
+                ))}
+                <button className="btn btn-outline-danger" disabled={currentPage === totalPage} onClick={() =>setCurrentPage((prev) => prev + 1)}>
+                  Next
+                </button>
+              </div>
+            )
+          }
+
+
+
         </section>
 
         {/* Footer */}
-        <footer className="menu-footer mt-5 text-center py-4 bg-dark text-white">
-          <div className="container">
-            <FaPizzaSlice className="fs-3 mb-2 text-warning" />
-            <p className="mb-1">PizzaMart — Every slice tells a delicious story.</p>
-            <small className="text-secondary">
-              © 2026 PizzaMart. Made with love and cheese.
-            </small>
-          </div>
-        </footer>
+        <Footer />
       </div>
     </>
   );

@@ -29,6 +29,8 @@ import Checkout from './components/Checkout'
 import OrderSuccess from './components/Ordersuccess'
 import MyOrders from './components/MyOrders'
 import MyAddresses from './components/MyAddress'
+import AdminContactEnquiries from './components/AdminContactMessage'
+import PasswordChangeEmail from './components/PasswordChangeGmail'
 const App = () => {
   return (
     <>
@@ -54,6 +56,10 @@ const App = () => {
       <Route path='/order-success/:orderNumber' element={<OrderSuccess />} />
       <Route path='/my-order' element={<MyOrders />} />
       <Route path='/my-address' element={<MyAddresses />} />
+      <Route path='/email-change-password' element ={<PasswordChangeEmail />} />
+
+
+      
       <Route path='/admin' element={<AdminLayout />}>
       <Route path='dashboard' element={<AdminDashboard /> }/>
       <Route path='users' element={<UserManagement />} />
@@ -61,6 +67,7 @@ const App = () => {
       <Route path='orders' element={<OrderManagement />} />
       <Route path='coupons' element={<CouponManagement />} />
       <Route path='categorys' element={<CategoryManagement />} />
+      <Route path='contact-message' element={<AdminContactEnquiries />} />
       </Route>
     </Routes>
     </ProfileProvider>  

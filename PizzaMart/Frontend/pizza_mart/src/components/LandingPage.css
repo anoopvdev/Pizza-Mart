@@ -544,3 +544,42 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+/* Navbar active link */
+
+.active-nav-link {
+    color: #dc3545 !important;
+    font-weight: 700;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+/* Active underline */
+
+.active-nav-link::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -6px;
+    width: 100%;
+    height: 3px;
+    background-color: #dc3545;
+    border-radius: 5px;
+}
+
+/* Hover effect */
+
+.navbar-nav a:hover {
+    color: #dc3545 !important;
+}

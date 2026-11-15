@@ -27,7 +27,8 @@ urlpatterns = [
     path('orders/<str:order_number>/',OrderDetailAPIView.as_view(),name='order-detail'),
     path('addresses/',AddressListCreateAPIView.as_view(),name='address-list'),
     path('addresses/<int:pk>/',AddressDetailAPIView.as_view(),name='address-details'),
-    path('addresses/<int:pk>/make-default/',MakeDefaultAddressAPIView.as_view(),name='make-default-address')
+    path('addresses/<int:pk>/make-default/',MakeDefaultAddressAPIView.as_view(),name='make-default-address'),
+    path('contact/',ContactView.as_view(),name='contact-message'),
     
 ]
 
