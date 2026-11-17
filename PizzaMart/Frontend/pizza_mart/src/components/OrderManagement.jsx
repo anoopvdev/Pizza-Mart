@@ -42,24 +42,7 @@ const OrderManagement = () => {
       alert(err.response?.data?.detail || "Unable to load order details.");
     }
   };
-  const deleteOrder = async (orderId) => {
-  console.log("DELETE FUNCTION ID:", orderId);
-
-  try {
-    const response = await adminApi.delete(
-      `orders/${orderId}/delete/`
-    );
-
-    console.log("DELETE SUCCESS:", response.data);
-
-    setOrders((old) =>
-      old.filter((order) => order.id !== orderId)
-    );
-
-  } catch (err) {
-    console.log("DELETE ERROR:", err.response?.data);
-  }
-};
+ 
   const updateStatus = async (orderId, newStatus) => {
     try {
       const response = await adminApi.patch(
@@ -144,7 +127,7 @@ const OrderManagement = () => {
                   <th>Payment</th>
                   <th>Status</th>
                   <th>Details</th>
-                  <th>Action</th>
+                  
                 </tr>
               </thead>
 
@@ -165,17 +148,7 @@ const OrderManagement = () => {
                         {order.status}
                       </span>
                     </td>
-                    <td>
-                      <button
-                        className="btn btn-sm btn-outline-primary"
-                        onClick={() => viewDetails(order.id)}
-                      >
-                        View Details
-                      </button>
-
-                      
-                    </td>
-
+                    
                     <td>
                        <button
   className="btn btn-sm btn-outline-danger"

@@ -85,24 +85,7 @@ class AdminOrderViewSet(viewsets.ReadOnlyModelViewSet):
             ).data
         }, status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=["delete"], url_path="delete")
-    def delete_order(self, request, pk=None):
-        order = self.get_object()
 
-        if order.payment.exists():
-            return Response(
-                {
-                    "message": "Cannot delete this order because payment records exist. Cancel the order instead."
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        order.delete()
-
-        return Response(
-            {"message": "Order deleted successfully."},
-            status=status.HTTP_200_OK
-        )   
 
 
 
