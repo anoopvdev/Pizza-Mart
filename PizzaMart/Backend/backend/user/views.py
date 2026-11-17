@@ -9,7 +9,6 @@ from .serializers import *
 import secrets
 from datetime import timedelta
 from django.contrib.auth.hashers import make_password,check_password
-from django.core.mail import send_mail
 from django.db import transaction
 from django.utils import timezone
 from rest_framework import viewsets
@@ -26,6 +25,34 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser,FormParser,JSONParser
 logger = logging.getLogger(__name__)
 import uuid
+import os
+import requests
+
+def send_resend_email(to_email, subject, message):
+    api_key = os.getenv("RESEND_API_KEY")
+
+    if not api_key:
+        raise RuntimeError("RESEND_API_KEY is not configured")
+
+    response = requests.post(
+        "https://api.resend.com/emails",
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        },
+        json={
+            "from": os.getenv("RESEND_FROM_EMAIL", "onboarding@resend.dev"),
+            "to": [to_email],
+            "subject": subject,
+            "text": message,
+        },
+        timeout=15,
+    )
+
+    response.raise_for_status()
+    return response.json()
+
+
 User = get_user_model()
 
 
@@ -74,30 +101,24 @@ class SendSignupOTPView(APIView):
 
     def post(self, request):
         serializer = SignupSerializer(data=request.data)
-        
-        # 1. Validate signup data
+
         if not serializer.is_valid():
             return Response(
                 {
                     "message": "Signup validation failed.",
-                    "errors": serializer.errors
+                    "errors": serializer.errors,
                 },
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         data = serializer.validated_data
-
         username = data["username"]
         email = data["email"].strip().lower()
         phone = data["phone"]
         password = data["password"]
-
-        
         otp = f"{secrets.randbelow(1_000_000):06d}"
-        print(otp)
 
         try:
-            
             with transaction.atomic():
                 user = User.objects.create_user(
                     username=username,
@@ -106,49 +127,46 @@ class SendSignupOTPView(APIView):
                     password=password,
                     is_active=False,
                 )
-
                 EmailOTP.objects.create(
                     user=user,
                     otp_hash=make_password(otp),
                     expires_at=timezone.now() + timedelta(minutes=5),
                 )
 
-                # 4. Send OTP email
-                sent = send_mail(
-                    subject="PizzaMart Email Verification OTP",
-                    message=(
-                        f"Hello {username},\n\n"
-                        f"Your PizzaMart verification code is {otp}.\n"
-                        "It expires in 5 minutes.\n\n"
-                        "If you did not request this code, "
-                        "please ignore this email."
-                    ),
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[email],
-                    fail_silently=False,
-                )
-
-                if sent != 1:
-                    raise RuntimeError("OTP email was not sent.")
+            send_resend_email(
+                to_email=user.email,
+                subject="PizzaMart Email Verification OTP",
+                message=(
+                    f"Hello {user.username},\\n\\n"
+                    f"Your PizzaMart verification OTP is: {otp}\\n\\n"
+                    "This OTP expires in 5 minutes.\\n"
+                    "Do not share this OTP with anyone."
+                ),
+            )
 
         except Exception:
             logger.exception("Signup OTP failed")
 
+            # Remove the unverified account if the email could not be sent.
+            if "user" in locals():
+                User.objects.filter(pk=user.pk, is_active=False).delete()
+
             return Response(
                 {
-                    "message": "Could not complete signup or send OTP. "
-                               "Please check your email configuration."
+                    "error": (
+                        "Could not send the verification email. "
+                        "Please check the email address and try again."
+                    )
                 },
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
 
-        # 5. Return success without exposing the OTP or password
         return Response(
             {
                 "message": "OTP sent successfully. Verify your email within 5 minutes.",
                 "email": email,
             },
-            status=status.HTTP_200_OK
+            status=status.HTTP_200_OK,
         )
 
 
@@ -210,120 +228,79 @@ def hash_reset_token(token):
 class forgotPasswordView(APIView):
     permission_classes = [AllowAny]
     authentication_classes = []
-    
 
     def post(self, request):
         email = request.data.get("email", "")
-        
-    
-        
+
         if not isinstance(email, str):
             return Response(
                 {"error": "Email must be a string."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        email = email.strip()
-
+        email = email.strip().lower()
         if not email:
             return Response(
-                {"error": ["Email is required."]},
+                {"error": "Email is required."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        user = User.objects.filter(email__iexact=email)
-        if user is None:
-            return Response({
-                "error":"This email is not registered"
-            },status=status.HTTP_404_NOT_FOUND)
-
-        generic_message = (
-            "If an account exists for this email, "
-            "password-reset instructions will be sent."
-        )
 
         user = User.objects.filter(email__iexact=email).first()
-
-        print("EMAIL RECEIVED:", repr(email))
-        print("USER FOUND:", user is not None)
-        print("USER ACTIVE:", user.is_active if user else None)
-
-
-        logger.info(
-            "Password reset requested: user_found=%s, active=%s",
-            user is not None,
-            user.is_active if user else None,
-        )
-
-        # Do not send OTP for unknown or inactive accounts.
         if not user or not user.is_active:
             return Response(
-                {"error":"Please verify your email first."},
+                {"error": "Please verify your email first."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         otp = f"{secrets.randbelow(1_000_000):06d}"
-        expires_at = timezone.now() + timedelta(minutes=5)
-
-        passwordRestOTP.objects.update_or_create(
-            user=user,
-            defaults={
-                "otp_hash": make_password(otp),
-                "expires_at": expires_at,
-                "attempts": 0,
-                "reset_token_hash": "",
-                "reset_token_expires_at": None,
-            },
-        )
-
-        subject = "PizzaMart Password Reset OTP"
         message = (
-            f"Hello {user.username},\n\n"
-            "You requested to reset your PizzaMart password.\n\n"
-            f"Your OTP is: {otp}\n\n"
-            "This OTP expires in 5 minutes.\n"
-            "Do not share this OTP with anyone.\n\n"
-            "Thank you,\n"
-            "PizzaMart Team"
+            f"Hello {user.username},\\n\\n"
+            "You requested to reset your PizzaMart password.\\n\\n"
+            f"Your OTP is: {otp}\\n\\n"
+            "This OTP expires in 5 minutes.\\n"
+            "Do not share this OTP with anyone.\\n\\n"
+            "Thank you,\\nPizzaMart Team"
         )
 
         try:
-            print("OTP GENERATED")
-            print("ABOUT TO SEND EMAIL TO:", user.email)
-            sent = send_mail(
-                subject=subject,
+            # Send first. Only replace the stored OTP after Resend accepts it.
+            send_resend_email(
+                to_email=user.email,
+                subject="PizzaMart Password Reset OTP",
                 message=message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[user.email],
-                fail_silently=False,
-            )
-            print("EMAIL SEND RESULT:", sent)
-
-            logger.info(
-                "Password reset email result: sent=%s, recipient=%s",
-                sent,
-                user.email,
             )
 
-            if sent != 1:
-                raise RuntimeError("Email backend did not send the message.")
+            passwordRestOTP.objects.update_or_create(
+                user=user,
+                defaults={
+                    "otp_hash": make_password(otp),
+                    "expires_at": timezone.now() + timedelta(minutes=5),
+                    "attempts": 0,
+                    "reset_token_hash": "",
+                    "reset_token_expires_at": None,
+                },
+            )
 
-        except Exception:
-            logger.exception("Failed to send password-reset OTP")
-
-            passwordRestOTP.objects.filter(user=user).delete()
-
+        except requests.RequestException as exc:
+            logger.exception("Resend API request failed for password-reset OTP")
             return Response(
                 {
                     "error": (
                         "Unable to send the email right now. "
-                        "Please try again."
+                        "Please try again later."
                     )
                 },
                 status=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
+        except Exception:
+            logger.exception("Failed to send/store password-reset OTP")
+            return Response(
+                {"error": "Unable to process the OTP request right now."},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
 
         return Response(
-            {"message": generic_message},
+            {"message": "Password reset OTP sent successfully."},
             status=status.HTTP_200_OK,
         )
 
@@ -332,9 +309,11 @@ class VerifyRestOTPView(APIView):
     permission_classes = [AllowAny]
     authentication_classes=[]
     def post(self,request):
-        email = request.data.get('email',"").strip()
-        otp = request.data.get('otp',"").strip()
-        if not  otp:
+        email = request.data.get("email", "")
+        otp = request.data.get("otp", "")
+        email = email.strip().lower() if isinstance(email, str) else ""
+        otp = otp.strip() if isinstance(otp, str) else ""
+        if not email or not otp:
             return Response({
                 "error":"Email and OTP are required"
             },status=status.HTTP_400_BAD_REQUEST)
@@ -438,59 +417,68 @@ class RestPasswordView(APIView):
 
 class ResendResetOTPView(APIView):
     permission_classes = [AllowAny]
-    authentication_classes =[]
+    authentication_classes = []
 
-
-    def post(self,request):
-        email = request.data.get('email',"").strip()
-        if not email :
-            return Response({
-                "error":"Email is Required."
-            },status=status.HTTP_400_BAD_REQUEST)
-        user = User.objects.filter(email__iexact = email,is_active=True).first()
-        if not user:
-            return Response({
-                "error":(
-                    "This email is not exists."
-                )
-            },status=status.HTTP_400_BAD_REQUEST)
-        otp = f"{secrets.randbelow(1_000_000):06d}"
-        print(otp)
-        try:
-            sent = send_mail(
-                subject= "Pizza Mart Password Reset OTP",
-                message=(
-                    f"Your new PizzaMart password-reset OTP is :{otp} \n\n"
-                    "This OTP expires in 5 minuties."
-                    "Do not share with anyone."
-                ),
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[user.email],
-                fail_silently=False
+    def post(self, request):
+        email = request.data.get("email", "")
+        if not isinstance(email, str) or not email.strip():
+            return Response(
+                {"error": "A valid email address is required."},
+                status=status.HTTP_400_BAD_REQUEST,
             )
-            if sent !=1:
-                raise RuntimeError ("Email was not sent.")
+
+        email = email.strip().lower()
+        user = User.objects.filter(email__iexact=email, is_active=True).first()
+        if not user:
+            return Response(
+                {"error": "Unable to resend OTP for this account."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        otp = f"{secrets.randbelow(1_000_000):06d}"
+        message = (
+            f"Hello {user.username},\\n\\n"
+            f"Your new PizzaMart password-reset OTP is: {otp}\\n\\n"
+            "This OTP expires in 5 minutes.\\n"
+            "Do not share this OTP with anyone."
+        )
+
+        try:
+            # Do not invalidate the previous OTP unless Resend accepts this email.
+            send_resend_email(
+                to_email=user.email,
+                subject="PizzaMart Password Reset OTP",
+                message=message,
+            )
 
             passwordRestOTP.objects.update_or_create(
                 user=user,
                 defaults={
-                    "otp_hash":make_password(otp),
-                    "expires_at":timezone.now()+timedelta(minutes=5),
-                    "attempts":0,
-                    "reset_token_hash":"",
-                    "reset_token_expires_at":None,
+                    "otp_hash": make_password(otp),
+                    "expires_at": timezone.now() + timedelta(minutes=5),
+                    "attempts": 0,
+                    "reset_token_hash": "",
+                    "reset_token_expires_at": None,
                 },
             )
+
         except Exception:
-            logger.exception("Failed to resend password reset OTP.")
-            return Response({
-                "error":(
-                    "Unable to resend OTP right now .Please try again"
-                )
-            },status=status.HTTP_503_SERVICE_UNAVAILABLE)
-        return Response({
-            "message":"A new OTP has sent to your registered email."
-        },status=status.HTTP_200_OK)
+            logger.exception("Failed to resend password-reset OTP")
+            return Response(
+                {
+                    "error": (
+                        "Unable to resend OTP right now. "
+                        "Please try again later."
+                    )
+                },
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
+        return Response(
+            {"message": "A new OTP has been sent to your registered email."},
+            status=status.HTTP_200_OK,
+        )
+
 
 # User profile View
 
