@@ -85,6 +85,19 @@ class AdminOrderViewSet(viewsets.ReadOnlyModelViewSet):
             ).data
         }, status=status.HTTP_200_OK)
 
+    @action(
+        detail=True,
+        methods=["delete"],
+        url_path="delete"
+    )
+
+    def delete_order(self,request,pk=None):
+        order = self.get_object()
+        order.delete()
+        return Response({
+            "message":"Order deleted successfully."
+        },status=status.HTTP_200_OK)
+
 
 
 
