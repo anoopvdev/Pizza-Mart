@@ -79,49 +79,51 @@ export default function Menu() {
   const handleDecrease = decreaseQuantity || decreaseQuatity || (() => {});
 
   // Fetch products from Django API
-  const fetchProducts = async (page = 1) => {
-    try {
-      setLoading(true);
-      setErrors("");
+  
+const fetchProducts = async (page = 1) => {
+  try {
+    setLoading(true);
+    setErrors("");
 
-      const token = localStorage.getItem("token") || localStorage.getItem("access_token");
-      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    const token =
+      localStorage.getItem("token") ||
+      localStorage.getItem("access_token");
 
-      const response = await axios.get(`https://pizza-mart-mu8r.onrender.com/api/user/auth/products/?page=${page}`, {
-        headers,
-      });
-      
-      console.log("Backend Response:", response.data);
-      
-      const productList =
-        response.data?.results ||
-        response.data?.products ||
-        response.data?.pizzas ||
-        response.data?.data ||
-        (Array.isArray(response.data) ? response.data : []);
+    const headers = token
+      ? { Authorization: `Bearer ${token}` }
+      : {};
 
-      setPizzas(Array.isArray(productList) ? productList : []);
-      setCurrentPage(page)
+    const response = await axios.get(
+      `https://pizza-mart-mu8r.onrender.com/api/user/auth/products/?page=${page}`,
+      { headers }
+    );
 
-      setTotalPages(Math.ceil(response.data.count / 8))
-      console.log("PIZZA RESPONSE:", response.data);
-      console.log("FIRST PIZZA:", productList[0]);          
-    } catch (error) {
-      console.error("Product fetch error:", error.response?.data || error.message);
-      setErrors(
-        error.response?.data?.detail ||
-          error.response?.data?.message ||
-          "Unable to load products. Please check if your Django server is running."
-      );
-    } finally {
-      setLoading(false);
-    }
+    const productList = response.data?.results || [];
 
-  };
+    setPizzas(productList);
+    setTotalPages(
+      Math.ceil(response.data.count / itemPerPage)
+    );
+
+    console.log("Backend Response:", response.data);
+
+  } catch (error) {
+    console.error("Product fetch error:", error.response?.data || error.message);
+
+    setErrors(
+      error.response?.data?.detail ||
+      error.response?.data?.message ||
+      "Unable to load products."
+    );
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   useEffect(() => {
-    fetchProducts();
-  }, []);
+  fetchProducts(currentPage);
+}, [currentPage]);
 
   const cartTotal = (cart || []).reduce(
     (total, item) => total + (Number(item.price) || 0) * (item.quantity || 1),
@@ -147,12 +149,8 @@ export default function Menu() {
     return matchesCategory && matchesSearch;
   });
 
-  const totalPage = Math.ceil(filteredPizzas.length / itemPerPage);
-
-  const indexOfLastPizza = currentPage * itemPerPage
-  const indexOfFirstPizza = indexOfLastPizza - itemPerPage;
-
-  const currentPizzas = filteredPizzas.slice(indexOfFirstPizza,indexOfLastPizza)
+  const totalPage = totalPages;
+  const currentPizzas = filteredPizzas;
   useEffect(()=>{
     setCurrentPage(1);
   },[search,activeCategory])
@@ -350,7 +348,7 @@ export default function Menu() {
             )}
           </div>
 
-          {
+          {/* {
             totalPage > 1 &&(
               <div className="d-flex justify-content-center align-items-center gap-2 mt-4 mb-4">
                 <button className="btn btn-outline-danger" disabled={currentPage === 1} onClick={()=>setCurrentPage((prev) => prev-1)}>
@@ -366,8 +364,42 @@ export default function Menu() {
               </div>
             )
           }
+ */}
+        {totalPage > 1 && (
+  <div className="d-flex justify-content-center align-items-center gap-2 mt-4 mb-4">
 
+    <button
+      className="btn btn-outline-danger"
+      disabled={currentPage === 1}
+      onClick={() => setCurrentPage(prev => prev - 1)}
+    >
+      Previous
+    </button>
 
+    {Array.from({ length: totalPage }, (_, index) => (
+      <button
+        key={index}
+        className={`btn ${
+          currentPage === index + 1
+            ? "btn-danger"
+            : "btn-outline-danger"
+        }`}
+        onClick={() => setCurrentPage(index + 1)}
+      >
+        {index + 1}
+      </button>
+    ))}
+
+    <button
+      className="btn btn-outline-danger"
+      disabled={currentPage === totalPage}
+      onClick={() => setCurrentPage(prev => prev + 1)}
+    >
+      Next
+    </button>
+
+  </div>
+)}
 
         </section>
 

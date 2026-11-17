@@ -75,24 +75,7 @@ const Navbar = () => {
                             </div>
                         </ul>
 
-                        <form
-                            className="search-box"
-                            onSubmit={(e) => {
-                                e.preventDefault();
-                                document.getElementById("menu")?.scrollIntoView({
-                                    behavior: "smooth",
-                                });
-                            }}
-                        >
-                            <FaSearch />
-
-                            <input
-                                type="search"
-                                placeholder="Search for pizzass..."
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                            />
-                        </form>
+                        
 
                         <div className="nav-actions">
 
