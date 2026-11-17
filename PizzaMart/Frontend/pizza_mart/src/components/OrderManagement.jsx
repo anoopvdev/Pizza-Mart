@@ -36,7 +36,7 @@ const OrderManagement = () => {
 
   const viewDetails = async (id) => {
     try {
-      const response = await adminApi.get(`orders/`);
+      const response = await adminApi.get(`orders/${id}/`);
       setSelectedOrder(response.data);
     } catch (err) {
       alert(err.response?.data?.detail || "Unable to load order details.");
