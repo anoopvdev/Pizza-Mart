@@ -121,7 +121,7 @@ const ProductManagement = () => {
 
       // New products are active by default
       if (!editingProduct) {
-        formData.append("is_active", true);
+        formData.append("is_available", true);
       }
 
       if (editingProduct) {
