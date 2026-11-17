@@ -49,8 +49,13 @@ def send_resend_email(to_email, subject, message):
         timeout=15,
     )
 
-    response.raise_for_status()
-    return response.json()
+    if not response.ok:
+        logger.error(
+            "Resend API Error %s: %s",
+            response.status_code,
+            response.text
+        )
+        response.raise_for_status()
 
 
 User = get_user_model()
