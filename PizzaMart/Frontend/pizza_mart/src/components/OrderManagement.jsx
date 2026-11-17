@@ -148,20 +148,18 @@ const OrderManagement = () => {
                         {order.status}
                       </span>
                     </td>
-                    
                     <td>
-                       <button
-  className="btn btn-sm btn-outline-danger"
-  title="Delete Order"
-  onClick={() => {
-    console.log("ORDER OBJECT:", order);
-    console.log("ORDER ID:", order.id);
-    deleteOrder(order.id);
-  }}
->
-  <i className="bi bi-trash me-1" />
-</button>
+                      <button
+                        className="btn btn-sm btn-outline-primary"
+                        onClick={() => viewDetails(order.id)}
+                      >
+                        View Details
+                      </button>
+
+                      
                     </td>
+
+                    
                     
                   </tr>
                 )) : (
