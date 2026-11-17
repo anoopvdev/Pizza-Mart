@@ -135,16 +135,24 @@ class AdminCategoryViewSet(viewsets.ModelViewSet):
 
 
 class UserProductListView(APIView):
-
     permission_classes = [AllowAny]
     authentication_classes = []
+
     def get(self, request):
-        pizzas = Pizzas.objects.filter(is_available=True).select_related("category").order_by("-created_at")
+        pizzas = (
+            Pizzas.objects
+            .filter(is_available=True)
+            .select_related("category")
+            .order_by("-created_at")
+        )
+
         paginator = PizzaPagination()
-        paginated_pizzas = paginator.paginate_queryset(pizzas,request,view=self)
+        paginated_pizzas = paginator.paginate_queryset(
+            pizzas, request, view=self
+        )
 
         serializer = PizzaSerializer(
-            pizzas,
+            paginated_pizzas,
             many=True,
             context={"request": request}
         )
