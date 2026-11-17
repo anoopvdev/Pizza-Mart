@@ -140,6 +140,9 @@ class UserProductListView(APIView):
     permission_classes = [AllowAny]
     authentication_classes = []
 
+    def perform_create(self, serializer):
+        serializer.save(is_available=True)
+
     def get(self, request):
         pizzas = (
             Pizzas.objects
