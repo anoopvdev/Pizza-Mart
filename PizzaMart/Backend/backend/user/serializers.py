@@ -154,11 +154,11 @@ class VerifyUserSerializer(serializers.Serializer):
 # User profile update serializer 
 class UserProfileSerializer(serializers.ModelSerializer):
 
-    gender = serializers.CharField(
-        source="profile.gender",
-        required=False,
-        allow_blank=True
-    )
+    # gender = serializers.CharField(
+    #     source="profile.gender",
+    #     required=False,
+    #     allow_blank=True
+    # )
 
     profile_image = serializers.ImageField(
         source="profile.profile_image",
@@ -182,7 +182,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     def validate_username(self, value):
         value = value.strip()
 
-        if not re.fullmatch(r"[A-Za-z]+", value):
+        if not re.fullmatch(r"^[A-Z][a-z]+(?:\s[A-za-z]+)*$", value):
             raise serializers.ValidationError(
                 "Username must contain letters only."
             )
@@ -235,7 +235,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     def validate_first_name(self,value):
         value = value.strip()
         if not re.fullmatch(r"^[A-Z][a-z]+(?:\s[A-za-z]+)*$",value):
-            raise serializers.ValidationError("Username must contain letter only.")
+            raise serializers.ValidationError("First Name must contain letter only.")
         return value
 
     def update(self, instance, validated_data):

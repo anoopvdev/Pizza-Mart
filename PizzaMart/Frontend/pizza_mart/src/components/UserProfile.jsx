@@ -473,24 +473,7 @@ const updatedProfile = {
                         />
                       </div>
 
-                      {/* <div className="col-md-6">
-                        <label className="form-label">Gender</label>
-                        <select
-                          className="form-select profile-input"
-                          name="gender"
-                          value={profile.gender}
-                          onChange={handleChange}
-                          disabled={!editing}
-                        >
-                          <option value="">Select gender</option>
-                          <option value="Male">Male</option>
-                          <option value="Female">Female</option>
-                          <option value="Other">Other</option>
-                          <option value="Prefer not to say">
-                            Prefer not to say
-                          </option>
-                        </select>
-                      </div> */}
+
                     </div>
                   </div>
                 </div>
