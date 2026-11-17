@@ -154,11 +154,11 @@ class VerifyUserSerializer(serializers.Serializer):
 # User profile update serializer 
 class UserProfileSerializer(serializers.ModelSerializer):
 
-    # gender = serializers.CharField(
-    #     source="profile.gender",
-    #     required=False,
-    #     allow_blank=True
-    # )
+    gender = serializers.CharField(
+        source="profile.gender",
+        required=False,
+        allow_blank=True
+    )
 
     profile_image = serializers.ImageField(
         source="profile.profile_image",
