@@ -18,6 +18,7 @@ from rest_framework import viewsets
 from user .serializers import ContactSerializer
 from datetime import datetime
 from django.shortcuts import get_object_or_404
+from django.core.files.storage import default_storage
 User = get_user_model()
 class AdminLoginView(APIView):
     authentication_classes = []
@@ -251,7 +252,7 @@ class AdminDashboardView(APIView):
                 "name": item["pizza_name"],
                 "orders": item["total_orders"] or 0,     
                 "price": float(item["latest_price"] or 0),
-                "image": (item["pizzas__image"].url if item["pizzas__image"] else None)
+                "image": (default_storage.url(item["pizzas_image"]) if item["pizzas__image"] else None)
             }
             for item in popular_queryset
         ]
