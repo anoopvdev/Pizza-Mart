@@ -252,7 +252,7 @@ class AdminDashboardView(APIView):
                 "name": item["pizza_name"],
                 "orders": item["total_orders"] or 0,     
                 "price": float(item["latest_price"] or 0),
-                "image": (default_storage.url(item["pizzas_image"]) if item["pizzas__image"] else None)
+                "image": (default_storage.url(item["pizzas__image"]) if item["pizzas__image"] else None)
             }
             for item in popular_queryset
         ]
