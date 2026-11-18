@@ -227,7 +227,7 @@ class AdminDashboardView(APIView):
             for item in status_queryset
         ]
 
-        # 4. Popular pizzas (grouped by pizza only, not by price)
+     
         popular_queryset = (
             OrderItems.objects
 
@@ -240,7 +240,7 @@ class AdminDashboardView(APIView):
         )
         .annotate(
         total_orders=Sum("quantity"),
-        latest_price=Max("unit_price"),   # capital M
+        latest_price=Max("unit_price"),  
     )
     .order_by("-total_orders")[:5]
 )
@@ -249,14 +249,14 @@ class AdminDashboardView(APIView):
             {
                 "id": item["pizzas_id"],
                 "name": item["pizza_name"],
-                "orders": item["total_orders"] or 0,      # frontend reads pizza.orders
+                "orders": item["total_orders"] or 0,     
                 "price": float(item["latest_price"] or 0),
-                "image": build_media_url(request, item["pizzas__image"]),
+                "image": (item["pizzas__image"].url if item["pizzas__image"] else None)
             }
             for item in popular_queryset
         ]
 
-        # 5. Recent orders (single query for item counts)
+     
         recent_queryset = list(
             Order.objects
             .select_related("user")
@@ -281,7 +281,7 @@ class AdminDashboardView(APIView):
                 "status": format_status(order.status),
             })
 
-        # 6. Top categories
+        
         category_queryset = (
             OrderItems.objects
             .filter(

@@ -11,12 +11,30 @@ from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from user .pagination import PizzaPagination
 
-class AdminProductViewSet(viewsets.ModelViewSet):
-    queryset = Pizzas.objects.select_related("category").all().order_by("-id")
-    serializer_class = AdminProductSerializer
-    permission_classes = [IsAdminUser,IsAuthenticated]
 
-    parser_classes=[MultiPartParser,FormParser,JSONParser]
+class AdminProductViewSet(viewsets.ModelViewSet):
+    queryset = (
+        Pizzas.objects
+        .select_related("category")
+        .all()
+        .order_by("-id")
+    )
+
+    serializer_class = AdminProductSerializer
+    permission_classes = [IsAdminUser, IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+
+    # Automatically make newly added pizzas active
+    def perform_create(self, serializer):
+        serializer.save(is_available=True)
+
+    # Handle product deletion safely
+    def perform_destroy(self, instance):
+        if OrderItems.objects.filter(pizzas=instance).exists():
+            instance.is_available = False
+            instance.save(update_fields=["is_available"])
+        else:
+            instance.delete()
 
 
 

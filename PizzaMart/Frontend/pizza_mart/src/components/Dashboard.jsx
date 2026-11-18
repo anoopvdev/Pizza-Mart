@@ -435,13 +435,16 @@ const AdminDashboard = () => {
 
                 {dashboard.popular_pizzas.length > 0 ? (
                   dashboard.popular_pizzas.map((pizza) => (
+                    
                     <div className="dashboard-pizza-item" key={pizza.id}>
+                    
                       {pizza.image ? (
+                        
                         <img src={pizza.image} alt={pizza.name} />
                       ) : (
                         <div className="dashboard-pizza-placeholder">🍕</div>
                       )}
-
+                        
                       <div className="flex-grow-1 min-w-0">
                         <strong>{pizza.name}</strong>
                         <small>{pizza.orders} orders</small>
@@ -449,6 +452,7 @@ const AdminDashboard = () => {
 
                       <strong>{formatCurrency(pizza.price)}</strong>
                     </div>
+                     
                   ))
                 ) : (
                   <div className="dashboard-empty-small">
@@ -460,6 +464,7 @@ const AdminDashboard = () => {
             </div>
           </div>
         </div>
+        
 
         {/* RECENT ORDERS / QUICK ACTIONS / CATEGORIES */}
         <div className="row g-3 mb-3">

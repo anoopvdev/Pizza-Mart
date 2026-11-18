@@ -13,7 +13,8 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 from pathlib import Path
 import os
 from dotenv import load_dotenv
-
+import cloudinary
+import cloudinary_storage
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 # environ.Env.read_env(BASE_DIR / '.env')
@@ -114,10 +115,9 @@ DATABASES = {
         "HOST": os.getenv("DB_HOST"),
         "PORT": os.getenv("DB_PORT", "3306"),
         "OPTIONS": {
-            "ssl": {
-                "check_hostname": True,
-            },
+            "ssl": {},
         },
+        "CONN_MAX_AGE": 0,
     }
 }
 
