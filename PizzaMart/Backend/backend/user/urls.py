@@ -7,11 +7,11 @@ from .order_views import *
 
 urlpatterns = [
     path('google/',GoogleLoginView.as_view(),name='google-login'),
-    # path('verify/',VerifyOTP.as_view(),name='verify'),
+   
     path('signup/',SendSignupOTPView.as_view(),name='signup'),
-    # path('login/',LoginView.as_view(),name='login'),
+    
     path("signup/verify-otp/",VerifySingupOTPview.as_view(),name="verify-otp"),
-    path('login/',login_user,name="login"),
+    path('login/',login_user,name="user"),
     path("forgot-password/",forgotPasswordView.as_view(),name='forgot-password'),
     path("verify-reset-otp/",VerifyRestOTPView.as_view(),name='verify-rest-otp'),
     path('reset-password/',RestPasswordView.as_view(),name='reset-password'),
