@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import adminApi from "../admin/adminApi";
+import api from "../axios";
 
-const API_URL = "https://pizza-mart-mu8r.onrender.com/api/admin/auth/";
 
 const AdminContactEnquiries = () => {
   const [enquiries, setEnquiries] = useState([]);
@@ -17,8 +17,8 @@ const AdminContactEnquiries = () => {
       setLoading(true);
       setError("");
 
-      const response = await axios.get(
-        `${API_URL}contact-message/`,
+      const response = await api.get(
+        "contact-message/",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -46,8 +46,8 @@ const AdminContactEnquiries = () => {
 
     if (!enquiry.is_read) {
       try {
-        await axios.patch(
-          `${API_URL}contact-message/${enquiry.id}/`,
+        await api.patch(
+          `contact-message/${enquiry.id}/`,
           {},
           {
             headers: {

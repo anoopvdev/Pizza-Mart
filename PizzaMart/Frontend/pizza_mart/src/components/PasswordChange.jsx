@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
+import api from "../axios";
 
 const PasswordChange = () => {
   const location = useLocation();
@@ -80,8 +81,8 @@ const PasswordChange = () => {
     });
 
     try {
-      const response = await axios.post(
-        "https://pizza-mart-mu8r.onrender.com/api/user/auth/reset-password/",
+      const response = await api.post(
+        "reset-password/",
         requestData
       );
       console.log("Updated password :",response.data)

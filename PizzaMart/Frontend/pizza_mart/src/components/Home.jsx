@@ -19,6 +19,7 @@ import {
 
 import { useCart } from "../context/CartCotext";
 import axios from "axios";
+import api from "../axios";
 
 export default function Home() {
 
@@ -45,7 +46,7 @@ export default function Home() {
       return image;
     }
 
-    return `https://pizza-mart-mu8r.onrender.com${image.startsWith("/") ? "" : "/"}${image}`;
+    return `${api.defaults.baseURL.replace(/\/$/, "")}${image.startsWith("/") ? "" : "/"}${image}`;
   };
 
   // FETCH PRODUCTS FROM BACKEND
@@ -58,8 +59,8 @@ export default function Home() {
         setLoading(true);
         setError("");
 
-        const response = await axios.get(
-          "https://pizza-mart-mu8r.onrender.com/api/user/auth/products/"
+        const response = await api.get(
+          "products/"
         );
 
         const data = response.data;

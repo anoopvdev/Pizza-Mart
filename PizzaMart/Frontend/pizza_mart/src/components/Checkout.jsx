@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import { useCart } from "../context/CartCotext";
 
-const API = "https://pizza-mart-mu8r.onrender.com/api/user/auth/";
+import { useCart } from "../context/CartCotext";
+import api from "../axios";
+
 
 const Checkout = () => {
 
@@ -26,30 +26,37 @@ const Checkout = () => {
     fetchAddresses()
   },[])
 
-  const fetchAddresses = async () =>{
-    try{
-      const response = await axios.get(`${API}addresses/`,{
-          headers : {
-            Authorization : `Bearer ${token}`,
-          },
-      });
+  const fetchAddresses = async () => {
+  try {
+    const response = await api.get("addresses/", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
-      const Data = Array.isArray(response.data) ? response.data : response.data.results || [];
-      setAddresses(Data)
-      const defaultAddress = data.find((item)=>item.is_default === true);
-      if(defaultAddress){
-        setSelectAddress(String(defaultAddress.id));
-      }else if(response.data.length > 0){
-        setSelectAddress(String(response.data[0].id))
-      }else{
-        setAddresses("")
-      }
-    }catch (error){
-      console.log("ADDRESS ERROR:", error.response?.data)
-      setError("Unable to load saved addresses.");
+    const data = Array.isArray(response.data)
+      ? response.data
+      : response.data.results || [];
+
+    setAddresses(data);
+
+    const defaultAddress = data.find(
+      (item) => item.is_default === true
+    );
+
+    if (defaultAddress) {
+      setSelectAddress(String(defaultAddress.id));
+    } else if (data.length > 0) {
+      setSelectAddress(String(data[0].id));
+    } else {
+      setSelectAddress("");
     }
-    
+
+  } catch (error) {
+    console.log("ADDRESS ERROR:", error.response?.data);
+    setError("Unable to load saved addresses.");
   }
+};
 
 
   const [paymentMethod, setPaymentMethod] = useState("razorpay");
@@ -97,6 +104,8 @@ const Checkout = () => {
     const sellectAddressesData = addresses.find((item)=>String(item.id) === String(selectAddress));
     if (!sellectAddressesData){
       setError("Selected address not found. Please select again.");
+      return;
+
     }
 
     try {
@@ -104,8 +113,8 @@ const Checkout = () => {
       setLoading(true);
 
       // 1. Create order in Django
-      const response = await axios.post(
-        `${API}orders/checkout/`,
+      const response = await api.post(
+        "orders/checkout/",
         {
           address_id: selectAddress,
           payment_method: paymentMethod
@@ -166,8 +175,8 @@ const Checkout = () => {
 
           try {
 
-            const verifyResponse = await axios.post(
-              `${API}orders/verify-payment/`,
+            const verifyResponse = await api.post(
+              "orders/verify-payment/",
               {
                 order_number: data.order.order_number,
 

@@ -2,6 +2,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
+import api from "../axios";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
@@ -25,8 +26,8 @@ const ForgotPassword = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post(
-        "https://pizza-mart-mu8r.onrender.com/api/user/auth/forgot-password/",
+      const response = await api.post(
+        "forgot-password/",
         { email: email.trim() }
       );
 

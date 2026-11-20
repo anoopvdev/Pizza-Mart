@@ -3,8 +3,9 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "./UserManagement.css";
 import { Link } from "react-router-dom";
+import api from "../axios";
 
-const API = "https://pizza-mart-mu8r.onrender.com/api/admin/auth/users/";
+
 
 const UserManagement = () => {
    const [users, setUsers] = useState([]);
@@ -36,7 +37,7 @@ const UserManagement = () => {
       const token = localStorage.getItem("adminAccess")
       console.log("Admin token exists : ",!!token)
       console.log("Admin token :",token)
-      const response = await axios.get("https://pizza-mart-mu8r.onrender.com/api/admin/auth/users/", {
+      const response = await api.get("users/", {
         headers: {
           Authorization : `Bearer ${token}`,
         }
@@ -81,8 +82,8 @@ const UserManagement = () => {
     try {
       setActionLoading(user.id);
 
-      const response = await axios.patch(
-        `${API}${user.id}/`,
+      const response = await api.patch(
+        `users/${user.id}/`,
         {
           is_active: !user.is_active,
         },
@@ -124,8 +125,8 @@ const UserManagement = () => {
     try {
       setActionLoading(user.id);
 
-      const response = await axios.delete(
-        `${API}${user.id}/`,
+      const response = await api.delete(
+        `users/${user.id}/`,
         {
           headers: getHeaders(),
         }

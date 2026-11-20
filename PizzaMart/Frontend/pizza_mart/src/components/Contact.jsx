@@ -4,8 +4,8 @@ import { Link } from "react-router-dom";
 import "./Contact.css";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
-const API = "https://pizza-mart-mu8r.onrender.com/api/user/auth/contact/";
 
+import api from "../axios";
 
 
 function Contact() {
@@ -35,7 +35,7 @@ function Contact() {
     setError("");
 
     try {
-      const response = await axios.post(API, formData);
+      const response = await api.post(API, formData);
 
       setSuccess(
         response.data.message ||

@@ -7,6 +7,7 @@ import ForgottPassword from '../components/ForgottPassword';
 import { useCart } from '../context/CartCotext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {faSpinner} from '@fortawesome/free-solid-svg-icons'
+import api from '../axios';
 const LoginPage = () => {
     const navigate = useNavigate()
     const[username,setUsername] = useState('')
@@ -30,8 +31,8 @@ const LoginPage = () => {
   setLoading(true);
 
   try {
-    const response = await axios.post(
-      "https://pizza-mart-mu8r.onrender.com/api/user/auth/login/",
+    const response = await api.post(
+      "login/",
       {
         username: username.trim(),
         password: password

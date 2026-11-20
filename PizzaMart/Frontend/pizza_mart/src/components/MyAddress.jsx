@@ -1,8 +1,9 @@
 
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import api from "../axios";
 
-const API_URL = "https://pizza-mart-mu8r.onrender.com/api/user/auth/addresses/";
+
 
 const emptyForm = {
   full_name: "",
@@ -39,7 +40,7 @@ const MyAddresses = () => {
       setLoading(true);
       setError("");
 
-      const response = await axios.get(API_URL, getConfig());
+      const response = await api.get("addresses/", getConfig());
 
       setAddresses(
         Array.isArray(response.data)
@@ -109,15 +110,15 @@ const MyAddresses = () => {
       setSuccess("");
 
       if (editingId) {
-        await axios.patch(
-          `${API_URL}${editingId}/`,
+        await api.patch(
+          `addresses/${editingId}/`,
           formData,
           getConfig()
         );
 
         setSuccess("Address updated successfully!");
       } else {
-        await axios.post(API_URL, formData, getConfig());
+        await api.post(API_URL, formData, getConfig());
 
         setSuccess("Address added successfully!");
       }
@@ -158,7 +159,7 @@ const MyAddresses = () => {
 
     try {
       setError("");
-      await axios.delete(`${API_URL}${id}/`, getConfig());
+      await api.delete(`addresses/${id}/`, getConfig());
 
       setSuccess("Address deleted successfully!");
       await fetchAddresses();
@@ -174,8 +175,8 @@ const MyAddresses = () => {
   const handleMakeDefault = async (id) => {
     try {
       setError("");
-      await axios.post(
-        `${API_URL}${id}/make-default/`,
+      await api.post(
+        `addresses/${id}/make-default/`,
         {},
         getConfig()
       );

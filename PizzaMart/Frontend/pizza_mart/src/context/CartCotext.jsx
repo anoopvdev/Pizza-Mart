@@ -8,10 +8,11 @@ import {
 } from "react";
 
 import axios from "axios";
+import api from "../axios";
 
 const CartContext = createContext();
 
-const API = "https://pizza-mart-mu8r.onrender.com/api/user/auth/cart/";
+
 
 export function CartProvider({ children }) {
   const [loading, setLoading] = useState(false);
@@ -37,7 +38,7 @@ export function CartProvider({ children }) {
     try {
       setLoading(true);
 
-      const response = await axios.get(API, {
+      const response = await api.get("cart/", {
         headers: getHeaders(),
       });
 
@@ -69,7 +70,7 @@ export function CartProvider({ children }) {
     }
 
     try {
-      const response = await axios.post(
+      const response = await api.post(
         API,
         {
           pizza_id: pizza.id,
@@ -97,7 +98,7 @@ export function CartProvider({ children }) {
   // 4. Increase quantity
   const increaseQuantity = async (id) => {
     try {
-      await axios.patch(
+      await api.patch(
         `${API}${id}/`,
         { action: "increase" },
         { headers: getHeaders() }
@@ -116,8 +117,8 @@ export function CartProvider({ children }) {
   // 5. Decrease quantity
   const decreaseQuantity = async (id) => {
     try {
-      await axios.patch(
-        `${API}${id}/`,
+      await api.patch(
+        `cart/${id}/`,
         { action: "decrease" },
         { headers: getHeaders() }
       );
@@ -135,8 +136,8 @@ export function CartProvider({ children }) {
   // 6. Remove item
   const removeFromCart = async (id) => {
     try {
-      await axios.delete(
-        `${API}${id}/`,
+      await api.delete(
+        `cart/${id}/`,
         { headers: getHeaders() }
       );
 

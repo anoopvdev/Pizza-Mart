@@ -2,8 +2,9 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
+import api from "../axios";
 
-const API = "https://pizza-mart-mu8r.onrender.com/api/user/auth/profile/";
+
 
 const initialProfile = {
   username:"" ,
@@ -47,7 +48,7 @@ function UserProfile() {
     }
 
     try {
-      const response = await axios.get(API, {
+      const response = await api.get("profile/", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -114,13 +115,11 @@ function UserProfile() {
     }
 
     if (profile.profilePhoto) {
-      const imageURL = profile.profilePhoto.startsWith("http")
-        ? profile.profilePhoto
-        : `https://pizza-mart-mu8r.onrender.com${
-            profile.profilePhoto.startsWith("/")
-              ? profile.profilePhoto
-              : `/${profile.profilePhoto}`
-          }`;
+  const imageURL = profile.profilePhoto.startsWith("http")
+  ? profile.profilePhoto
+  : profile.profilePhoto.startsWith("/")
+    ? profile.profilePhoto
+    : `/${profile.profilePhoto}`;;
 
       setPreviewURL(imageURL);
     } else {
@@ -216,7 +215,7 @@ function UserProfile() {
     try {
       setSaving(true);
 
-      const response = await axios.patch(API, formData, {
+      const response = await api.patch("profile/", formData, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

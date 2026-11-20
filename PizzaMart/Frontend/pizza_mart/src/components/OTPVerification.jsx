@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import api from "../axios";
 
 function VerifyResetOTP() {
   const location = useLocation();
@@ -18,7 +19,7 @@ function VerifyResetOTP() {
     setLoading(true)
     setMessage("")
     try{
-      const response = await axios.post("https://pizza-mart-mu8r.onrender.com/api/user/auth/resend-reset-otp/",{email});
+      const response = await api.post("resend-reset-otp/",{email});
       setMessage(response.data.message || "Please check your email for the new OTP.");
       setOtp("")
     }catch(error){
@@ -43,8 +44,8 @@ function VerifyResetOTP() {
     setLoading(true)
 
     try {
-      const response = await axios.post(
-        "https://pizza-mart-mu8r.onrender.com/api/user/auth/verify-reset-otp/",
+      const response = await api.post(
+        "verify-reset-otp/",
         {
           email: email,
           otp: otp

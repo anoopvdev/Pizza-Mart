@@ -1,6 +1,7 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import adminApi from "../admin/adminApi";
+import api from "../axios";
 import './ProductManagement.css'
 const ProductManagement = () => {
   const [products, setProducts] = useState([]);
@@ -26,15 +27,15 @@ const ProductManagement = () => {
   const [form, setForm] = useState(initialForm);
 
   // Image URL
-  const getImageUrl = (image) => {
-    if (!image) return null;
+ const getImageUrl = (image) => {
+  if (!image) return null;
 
-    if (image.startsWith("http://") || image.startsWith("https://")) {
-      return image;
-    }
+  if (image.startsWith("http://") || image.startsWith("https://")) {
+    return image;
+  }
 
-    return `https://pizza-mart-mu8r.onrender.com${image.startsWith("/") ? "" : "/"}${image}`;
-  };
+  return image.startsWith("/") ? image : `/${image}`;
+};
 
   // Fetch products
   const fetchProducts = async () => {

@@ -15,17 +15,17 @@ import { useCart } from "../context/CartCotext";
 
 import axios from "axios";
 import Footer from "./Footer";
+import api from "../axios";
 
 // Helper to ensure image URLs point to the Django backend
 const getImageUrl = (image) => {
-  if (!image) {
-    return "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=600&q=80";
-  }
+  if (!image) return null;
+
   if (image.startsWith("http://") || image.startsWith("https://")) {
     return image;
   }
-  const backendBase = "https://pizza-mart-mu8r.onrender.com";
-  return `${backendBase}${image.startsWith("/") ? "" : "/"}${image}`;
+
+  return image.startsWith("/") ? image : `/${image}`;
 };
 
 
@@ -93,8 +93,8 @@ const fetchProducts = async (page = 1) => {
       ? { Authorization: `Bearer ${token}` }
       : {};
 
-    const response = await axios.get(
-      `https://pizza-mart-mu8r.onrender.com/api/user/auth/products/?page=${page}`,
+    const response = await api.get(
+      `products/?page=${page}`,
       { headers }
     );
 

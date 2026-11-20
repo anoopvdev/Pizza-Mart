@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import api from "../axios";
 
-const API = "https://pizza-mart-mu8r.onrender.com/api/user/auth/";
+
 
 const MyOrders = () => {
 
@@ -17,8 +18,8 @@ const MyOrders = () => {
 
       try {
 
-        const response = await axios.get(
-          `${API}orders/`,
+        const response = await api.get(
+          "orders/",
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("access")}`,

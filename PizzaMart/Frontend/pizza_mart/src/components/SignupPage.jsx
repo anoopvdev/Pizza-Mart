@@ -6,6 +6,7 @@ import { replace, useLocation, useNavigate, } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import api from "../axios";
   const  Signup =() => {
   const[username,setUserName] = useState('')
   const[email,setEmail] = useState('')
@@ -35,7 +36,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
  
   const handleGoogleSuccess = async (response) =>{
     try{
-      const result = await axios.post("http://127.0.0.1:8000/api/user/auth/google/",{
+      const result = await api.post("google/",{
         credential: response.credential,
       });
       localStorage.setItem("access",result.data.access);
@@ -121,8 +122,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
   setLoading(true);
 
   try {
-    const response = await axios.post(
-      "https://pizza-mart-mu8r.onrender.com/api/user/auth/signup/",
+    const response = await api.post(
+      "signup/",
       UserData
     );
 
@@ -196,8 +197,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
   }
 
   try {
-    const response = await axios.post(
-      "https://pizza-mart-mu8r.onrender.com/api/user/auth/signup/verify-otp/",
+    const response = await api.post(
+      "signup/verify-otp/",
       {
         email: email.trim().toLowerCase(),
         otp: otp.trim(),

@@ -4,10 +4,12 @@ import { FaStar, FaShoppingCart } from "react-icons/fa";
 function PizzaCard({ pizza, onAdd }) {
 
   const imageUrl = pizza.image
-    ? pizza.image.startsWith("http")
+  ? pizza.image.startsWith("http")
+    ? pizza.image
+    : pizza.image.startsWith("/")
       ? pizza.image
-      : `https://pizza-mart-mu8r.onrender.com${pizza.image}`
-    : "/default-pizza.png";
+      : `/${pizza.image}`
+  : "/default-pizza.png";
 
   const categoryName =
     typeof pizza.category === "object"
