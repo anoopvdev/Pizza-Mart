@@ -64,8 +64,8 @@ User = get_user_model()
 
 
 @api_view(['POST'])
-# @permission_classes([AllowAny])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
+
 
 def login_user(request):
 
