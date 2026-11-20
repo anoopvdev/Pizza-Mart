@@ -37,7 +37,8 @@ const LoginPage = () => {
         password: password
       }
     );
-
+    console.log("Username : ",username);
+    console.log("New password : ",password)
     console.log("Login response:", response.data);
 
     // Save JWT tokens
@@ -52,7 +53,7 @@ const LoginPage = () => {
 
   } catch (error) {
     console.log("Login error:", error.response?.data);
-
+    
     const message = error.response?.data?.error;
     setError(message || "Login failed");
 

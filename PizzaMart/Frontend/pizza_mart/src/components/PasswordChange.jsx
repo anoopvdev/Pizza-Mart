@@ -84,7 +84,7 @@ const PasswordChange = () => {
         "https://pizza-mart-mu8r.onrender.com/api/user/auth/reset-password/",
         requestData
       );
-
+      console.log("Updated password :",response.data)
       setMessage(
         response.data.message || "Password changed successfully"
       );

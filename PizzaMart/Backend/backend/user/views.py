@@ -23,6 +23,8 @@ from django.conf import settings
 from django.core.validators import validate_email
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser,FormParser,JSONParser
+from google.oauth2 import id_token
+from google.auth.transport import requests as google_request
 logger = logging.getLogger(__name__)
 import uuid
 import os
@@ -62,7 +64,9 @@ User = get_user_model()
 
 
 @api_view(['POST'])
-@permission_classes([AllowAny])
+# @permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
+
 def login_user(request):
 
     username = request.data.get('username', '').strip()
@@ -78,6 +82,8 @@ def login_user(request):
         username=username,
         password=password
     )
+    print("username : ",username )
+    print("New password :" ,password)
 
     if user is None:
         return Response({
@@ -97,9 +103,80 @@ def login_user(request):
         "access": str(refresh.access_token),
         "refresh": str(refresh)
     }, status=status.HTTP_200_OK)
-# OTP verification
+# Google Signup Views
 
-# """------------------------------------------------Sample 3---------------------------------"""
+class GoogleLoginView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self,request):
+        credential = request.data.get("credential")
+
+        if not credential:
+            return Response({
+                "error" : "Google credential is required"
+            },status=status.HTTP_400_BAD_REQUEST)
+        try:
+            client_id = os.getenv("GOOGLE_CLIENT_ID")
+
+            if not client_id:
+                return Response({
+                    "error" : "Google Client ID is not configured."
+                },status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+            google_user = id_token.verify_oauth2_token(credential,google_request.Request(),client_id)
+            email = google_user.get("email")
+            email_verified = google_user.get("email_verified",False)
+            name = google_user.get("name", "")
+
+            if not email or not email_verified:
+                return Response({
+                    "error": "Google email is not verified."
+                },status=status.HTTP_400_BAD_REQUEST)
+
+            user = User.objects.filter(email__iexact=email).first()
+            if user is None:
+                username = email.split("@")[0]
+                base_username = username
+                count = 1
+                while User.objects.filter(username=username).exists():
+                    username = f"{base_username}{count}"
+                    count +=1
+
+                    user = User.objects.create_user(
+                        username= username,
+                        email=email,
+                        first_name = name,
+                    )
+
+                    if not user.is_active:
+                        return Response({
+                            "error": "Your account is inactive"
+                        },status=status.HTTP_403_FORBIDDEN)
+
+                    refresh = RefreshToken.for_user(user)
+
+                    return Response({
+                        "message" : "Google login successful",
+                        "access" : str(refresh.access_token),
+                        "refresh" : str(refresh),
+                        "user" : {
+                            "id" : user.id,
+                            "username" : user.username,
+                            "email" : user.email
+                        }
+                    },status=status.HTTP_400_BAD_REQUEST)
+        except ValueError:
+            return Response({
+                "error" : "Invalid Google credential"
+            },status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            print("Google authentication error :" ,str(e))
+            return Response({
+                "error" : "Google authentication failed"
+            },status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 class SendSignupOTPView(APIView):
     permission_classes = [AllowAny]
     authentication_classes = []

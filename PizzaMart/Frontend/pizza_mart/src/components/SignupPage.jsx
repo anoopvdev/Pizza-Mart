@@ -33,9 +33,17 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
   }
  
-  const handleGoogleSuccess = (credentialResponse) =>{
-    console.log("Google login Successful")
-    console.log(credentialResponse.credential)
+  const handleGoogleSuccess = async (response) =>{
+    try{
+      const result = await axios.post("http://127.0.0.1:8000/api/user/auth/google/",{
+        credential: response.credential,
+      });
+      localStorage.setItem("access",result.data.access);
+      localStorage.setItem("refresh",response.data.refresh);
+      window.location.href = "/home"
+    }catch (err){
+      console.log("Google Login Error",err.response?.data || err.message)
+    }
   }
   // Username Validate
 

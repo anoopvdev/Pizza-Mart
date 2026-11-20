@@ -6,7 +6,7 @@ from products .views import *
 from .order_views import *
 
 urlpatterns = [
-    # path('signup/',SingnUpViews.as_view(),name='signUp'),
+    path('google/',GoogleLoginView.as_view(),name='google-login'),
     # path('verify/',VerifyOTP.as_view(),name='verify'),
     path('signup/',SendSignupOTPView.as_view(),name='signup'),
     # path('login/',LoginView.as_view(),name='login'),

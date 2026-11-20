@@ -15,6 +15,8 @@ import os
 from dotenv import load_dotenv
 import cloudinary
 import cloudinary_storage
+
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 # environ.Env.read_env(BASE_DIR / '.env')
@@ -108,14 +110,14 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.mysql",
-        "NAME": os.getenv("DB_NAME"),
-        "USER": os.getenv("DB_USER"),
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.getenv("DB_NAME", "pizzamart"),
+        "USER": os.getenv("DB_USER", "postgres"),
         "PASSWORD": os.getenv("DB_PASSWORD"),
         "HOST": os.getenv("DB_HOST"),
-        "PORT": os.getenv("DB_PORT", "3306"),
+        "PORT": os.getenv("DB_PORT", "5432"),
         "OPTIONS": {
-            "ssl": {},
+            "sslmode": "require",
         },
         "CONN_MAX_AGE": 0,
     }
