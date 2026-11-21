@@ -71,7 +71,7 @@ export function CartProvider({ children }) {
 
     try {
       const response = await api.post(
-        API,
+        "cart/",
         {
           pizza_id: pizza.id,
           quantity: 1,
@@ -99,7 +99,7 @@ export function CartProvider({ children }) {
   const increaseQuantity = async (id) => {
     try {
       await api.patch(
-        `${API}${id}/`,
+        `cart/${id}/`,
         { action: "increase" },
         { headers: getHeaders() }
       );
