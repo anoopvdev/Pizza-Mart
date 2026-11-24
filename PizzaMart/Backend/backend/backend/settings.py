@@ -45,7 +45,7 @@ if not SECRET_KEY:
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
+# ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
 
 
 # Application definition
@@ -108,21 +108,26 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 
 
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.postgresql",
+#         "NAME": os.getenv("DB_NAME", "pizzamart"),
+#         "USER": os.getenv("DB_USER", "postgres"),
+#         "PASSWORD": os.getenv("DB_PASSWORD"),
+#         "HOST": os.getenv("DB_HOST"),
+#         "PORT": os.getenv("DB_PORT", "5432"),
+#         "OPTIONS": {
+#             "sslmode": "require",
+#         },
+#         "CONN_MAX_AGE": 0,
+#     }
+# }
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("DB_NAME", "pizzamart"),
-        "USER": os.getenv("DB_USER", "postgres"),
-        "PASSWORD": os.getenv("DB_PASSWORD"),
-        "HOST": os.getenv("DB_HOST"),
-        "PORT": os.getenv("DB_PORT", "5432"),
-        "OPTIONS": {
-            "sslmode": "require",
-        },
-        "CONN_MAX_AGE": 0,
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
@@ -199,11 +204,11 @@ RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID")
 RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
 
 
+ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
 
-
-ALLOWED_HOSTS = [
-    "pizza-mart-mu8r.onrender.com",
-]
+# ALLOWED_HOSTS = [
+#     "pizza-mart-mu8r.onrender.com",
+# ]
 
 CORS_ALLOWED_ORIGINS = [
    "https://pizza-mart-coral.vercel.app",

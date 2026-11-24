@@ -7,7 +7,7 @@ import {
   useState
 } from "react";
 
-import axios from "axios";
+
 import api from "../axios";
 
 const CartContext = createContext();

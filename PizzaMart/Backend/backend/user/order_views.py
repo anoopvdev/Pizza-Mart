@@ -10,19 +10,33 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 
-from user .models import Cart,CartItems,Order,OrderItems,Payment
+from user.models import (
+    Cart,
+    CartItems,
+    Order,
+    OrderItems,
+    Payment,
+    ReturnRequest
+)
 
 from .razorpay_utils import get_razorpay_client
 
-def order_to_dict(order):
+def order_to_dict(order, request=None):
 
     items = []
 
     for item in order.items.all():
+
+        image_url =None
+        if item.pizzas.image:
+            image_url = item.pizzas.image.url
+            if request:
+                image_url = request.build_absolute_uri(image_url)
         items.append({
             "id":item.id,
             "pizza_id":item.pizzas_id,
             "name":item.pizza_name,
+            "image": image_url,
             "price":float(item.unit_price),
             "quantity":item.quantity,
             "subtotal":float(item.subtotal)
@@ -198,16 +212,6 @@ class CheckoutAPIView(APIView):
                         "order": order.order_number
                     }, status=status.HTTP_502_BAD_GATEWAY)
 
-
-            
-
-            
-
-
-
-
-
-
 class VerifyRazorpayPaymentAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -236,7 +240,7 @@ class VerifyRazorpayPaymentAPIView(APIView):
             payment_method = 'razorpay'
         )
 
-        if order.payment_method == "paid":
+        if order.payment_status == "paid":
             return Response({
                 "message":"Payment already verified",
                 "order":order_to_dict(order)
@@ -286,7 +290,7 @@ class VerifyRazorpayPaymentAPIView(APIView):
 
                 if order.payment_status != "paid":
 
-                    payment = order.payments.filter(
+                    payment = order.payment.filter(
                         payment_method="razorpay"
                     ).latest("created_at")
 
@@ -336,13 +340,111 @@ class MyOrdersAPIView(APIView):
         ).prefetch_related("items").order_by("-created_at")
 
         data = [
-            order_to_dict(order)
+            order_to_dict(order,request)
             for order in orders
         ]
 
         return Response({
             "orders": data
         }, status=status.HTTP_200_OK)
+
+class OrderCancelAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    def post(self,request,order_number):
+        with transaction.atomic():
+            order = get_object_or_404(
+                Order.objects.select_for_update(),
+                order_number = order_number,
+                user=request.user
+
+            )
+
+            if order.status not in ["pending", "confirmed"]:
+                return Response({
+                    "error" : "This order cannot be cancelled now."
+                },status=status.HTTP_400_BAD_REQUEST)
+
+            order.status = "cancelled"
+            order.save(update_fields=["status","updated_at"])
+            return Response({
+                "Message" : "Order Cancelled successfully.",
+                "order" : order_to_dict(order,request)
+            },status=status.HTTP_200_OK)
+
+class RefundRequestAPIViews(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self,request,order_number):
+        order = get_object_or_404(
+            Order,order_number=order_number,user = request.user
+        )
+
+        if order.payment_method != "razorpay":
+            return Response({
+                "error" : "Refund is not available for COD orders."
+            },status=status.HTTP_400_BAD_REQUEST)
+        if order.payment_status != "paid":
+            return Response({
+                "error" : "This order has no successfull payment to refund."
+            },status=status.HTTP_400_BAD_REQUEST)
+        if order.status != "cancelled":
+            return Response({
+
+                "error" : "Pleas cancel the order before requesting a refund."
+            }, status=status.HTTP_400_BAD_REQUEST)
+        successful_payment = order.payment.filter(
+            payment_method = "razorpay",
+            status="succes"
+        ).exclude(
+            transaction_id__isnull=True
+        ).exclude(
+             transaction_id=""
+        ).exists()
+
+        if not successful_payment:
+            return Response({
+                "error" : "Successful payment transaction not found"
+            },status=status.HTTP_400_BAD_REQUEST)
+
+        if order.payment_status == "refunded":
+            return Response({
+                "error" : "This order has already been refunded"
+            },status=status.HTTP_400_BAD_REQUEST)
+
+        existing_request = ReturnRequest.objects.filter(
+            order=order,
+            user=request.user,
+            status__in=["pending","approved","refunded"]
+        ).first()
+        if existing_request:
+            return Response({
+                "message": "A refund request already exists.",
+                "request_status": existing_request.status
+            }, status=status.HTTP_200_OK)
+
+        reason = request.data.get("reason","").strip()
+
+        if not reason:
+            return Response({
+                "error" : "Please provide a refund reason ."
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        refund_request = ReturnRequest.objects.create(
+            order=order,
+            user = request.user,
+            reason = reason,
+            status= "pending"
+        )
+
+        return Response({
+            "Message" : "Refund request submitted successfully",
+            "refund_request" :{
+                "id": refund_request.id,
+                "order_number": order.order_number,
+                "reason": refund_request.reason,
+                "status": refund_request.status
+            }
+        }, status=status.HTTP_201_CREATED)
 
 
 class OrderDetailAPIView(APIView):
@@ -358,7 +460,7 @@ class OrderDetailAPIView(APIView):
         )
 
         return Response({
-            "order": order_to_dict(order)
+            "order": order_to_dict(order,request)
         }, status=status.HTTP_200_OK)
 
 

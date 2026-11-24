@@ -316,4 +316,40 @@ class AddressSerializer(serializers.ModelSerializer):
         model = Address
         fields = "__all__"
         read_only_fields = ["id","user","created_at"]
-        
+
+
+
+
+class OrderItemSerializer(serializers.ModelSerializer):
+
+    name = serializers.CharField(
+        source="pizza_name",
+        read_only=True
+    )
+
+    image = serializers.SerializerMethodField()
+
+    price = serializers.DecimalField(
+        source="unit_price",
+        max_digits=10,
+        decimal_places=2,
+        read_only=True
+    )
+
+    class Meta:
+        model = OrderItems
+        fields = [
+            "id",
+            "name",
+            "image",
+            "quantity",
+            "price",
+            "subtotal",
+        ]
+
+    def get_image(self, obj):
+
+        if obj.pizzas and obj.pizzas.image:
+            return obj.pizzas.image.url
+
+        return None
